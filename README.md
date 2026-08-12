@@ -1,5 +1,10 @@
 # PixelLink for Roll20
 
+[![CI](https://github.com/scooper4711/pixellink-roll20/actions/workflows/ci.yml/badge.svg)](https://github.com/scooper4711/pixellink-roll20/actions/workflows/ci.yml)
+[![Quality Gate](https://sonarcloud.io/api/project_badges/measure?project=scooper4711_pixellink-roll20&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=scooper4711_pixellink-roll20)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=scooper4711_pixellink-roll20&metric=coverage)](https://sonarcloud.io/summary/new_code?id=scooper4711_pixellink-roll20)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+
 Connect your Pixels dice to Roll20 via Bluetooth — system-independent, no character sheet required.
 
 PixelLink works with any Roll20 game regardless of the game system, character sheet template, or campaign settings. It operates entirely through Roll20's chat, so there are zero dependencies on a specific character sheet, compendium, or API scripts. If you can type in Roll20's chat box, PixelLink works.
