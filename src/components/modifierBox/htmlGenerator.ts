@@ -1,0 +1,94 @@
+/**
+ * HTML Generator Module
+ * Handles fallback HTML creation for the modifier box when templates fail to load
+ */
+
+'use strict';
+
+// Generate the modifier box HTML structure
+export function generateModifierBoxHTML(
+  logoUrl: string = 'assets/images/logo-128.png'
+): string {
+  return `
+    <div class="pixels-header">
+        <span class="pixels-title">
+            <img src="${logoUrl}" alt="Pixels" class="pixels-logo"> Saved Rolls
+        </span>
+        <div class="pixels-controls">
+            <button class="add-modifier-btn" type="button" title="Add Row">Add</button>
+            <button class="clear-all-btn" type="button" title="Clear All">Clear All</button>
+            <button class="pixels-minimize" title="Minimize">−</button>
+        </div>
+    </div>
+    <div class="pixels-content">
+        <div class="modifier-row">
+            <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
+            <input type="text" class="modifier-name" placeholder="Name" value="Attack" data-index="0">
+            <input type="text" class="formula-input" placeholder="e.g. 2d6+3" value="1d20" data-index="0">
+            <button class="roll-formula-btn" type="button" title="Roll this formula">Roll</button>
+            <button class="remove-row-btn" type="button">×</button>
+        </div>
+    </div>
+    <div class="pixels-resize-handle"></div>
+  `;
+}
+
+export function getLogoUrl(): string {
+  let logoUrl = 'assets/images/logo-128.png';
+  try {
+    if (
+      typeof chrome !== 'undefined' &&
+      chrome.runtime &&
+      chrome.runtime.getURL
+    ) {
+      logoUrl = chrome.runtime.getURL('assets/images/logo-128.png');
+    }
+  } catch {
+    // Using fallback logo URL (not in extension context)
+  }
+  return logoUrl;
+}
+
+export function createModifierBoxElement(): HTMLElement {
+  const modifierBox = document.createElement('div');
+  modifierBox.id = 'pixels-modifier-box';
+  modifierBox.setAttribute('data-testid', 'pixels-modifier-box');
+  modifierBox.className = 'PIXELS_EXTENSION_BOX_FIND_ME';
+
+  const logoUrl = getLogoUrl();
+  modifierBox.innerHTML = generateModifierBoxHTML(logoUrl);
+
+  return modifierBox;
+}
+
+export function processTemplateHTML(
+  htmlTemplate: string,
+  logoUrl: string | null = null
+): string {
+  if (!logoUrl) {
+    logoUrl = getLogoUrl();
+  }
+  return htmlTemplate.replace('{{logoUrl}}', logoUrl);
+}
+
+export function extractModifierBoxFromTemplate(
+  processedHTML: string
+): Element | null {
+  const tempContainer = document.createElement('div');
+  tempContainer.innerHTML = processedHTML;
+  return tempContainer.firstElementChild;
+}
+
+const HTMLGenerator = {
+  generateModifierBoxHTML,
+  getLogoUrl,
+  createModifierBoxElement,
+  processTemplateHTML,
+  extractModifierBoxFromTemplate,
+};
+
+export default HTMLGenerator;
+
+if (typeof window !== 'undefined') {
+  window.ModifierBoxHTMLGenerator = HTMLGenerator;
+}

@@ -1,0 +1,244 @@
+// Theme detection utility for Roll20
+// This file contains functions to detect Roll20's current theme and monitor changes
+
+'use strict';
+
+// Parse color string to RGB values
+export const parseColor = (colorStr: string | null): RGBColor | null => {
+  if (!colorStr) {
+    return null;
+  }
+
+  // Handle rgb() format
+  const rgbMatch = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (rgbMatch) {
+    return {
+      r: parseInt(rgbMatch[1]),
+      g: parseInt(rgbMatch[2]),
+      b: parseInt(rgbMatch[3]),
+    };
+  }
+
+  // Handle rgba() format
+  const rgbaMatch = colorStr.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/);
+  if (rgbaMatch) {
+    return {
+      r: parseInt(rgbaMatch[1]),
+      g: parseInt(rgbaMatch[2]),
+      b: parseInt(rgbaMatch[3]),
+    };
+  }
+
+  // Handle hex format
+  const hexMatch = colorStr.match(/^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  if (hexMatch) {
+    return {
+      r: parseInt(hexMatch[1], 16),
+      g: parseInt(hexMatch[2], 16),
+      b: parseInt(hexMatch[3], 16),
+    };
+  }
+
+  return null;
+};
+
+// Detect current Roll20 theme
+export const detectTheme = (): string => {
+  // First priority: Check Roll20's localStorage colorTheme setting
+  try {
+    const roll20Theme = localStorage.getItem('colorTheme');
+    if (roll20Theme === 'dark' || roll20Theme === 'light') {
+      console.log(`Theme detected from Roll20 localStorage: ${roll20Theme}`);
+      return roll20Theme;
+    } else if (roll20Theme) {
+      console.log(
+        `Unexpected Roll20 theme value: ${roll20Theme}, falling back to other detection`
+      );
+    } else {
+      console.log(
+        'No colorTheme found in localStorage, falling back to other detection'
+      );
+    }
+  } catch (error) {
+    console.warn('Could not access Roll20 localStorage colorTheme:', error);
+  }
+
+  // Second priority: Check for Roll20's theme classes on body or html
+  const body = document.body;
+  const html = document.documentElement;
+
+  if (
+    body.classList.contains('darkmode') ||
+    html.classList.contains('darkmode')
+  ) {
+    return 'dark';
+  }
+  if (
+    body.classList.contains('lightmode') ||
+    html.classList.contains('lightmode')
+  ) {
+    return 'light';
+  }
+
+  // Check for data attributes
+  if ((body as HTMLElement).dataset.theme) {
+    return (body as HTMLElement).dataset.theme!;
+  }
+  if ((html as HTMLElement).dataset.theme) {
+    return (html as HTMLElement).dataset.theme!;
+  }
+
+  // Check CSS custom properties
+  const computedStyle = getComputedStyle(document.documentElement);
+  const bgColor =
+    computedStyle.getPropertyValue('--background-color') ||
+    computedStyle.getPropertyValue('--main-bg') ||
+    computedStyle.backgroundColor;
+
+  // Analyze background color to determine theme
+  if (bgColor) {
+    const rgb = parseColor(bgColor);
+    if (rgb) {
+      const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
+      return brightness < 128 ? 'dark' : 'light';
+    }
+  }
+
+  // Check Roll20's chat container styles as fallback
+  const chatContainer = document.querySelector('.textchatcontainer, #textchat');
+  if (chatContainer) {
+    const chatStyle = getComputedStyle(chatContainer);
+    const chatBg = chatStyle.backgroundColor;
+    if (chatBg) {
+      const rgb = parseColor(chatBg);
+      if (rgb) {
+        const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
+        return brightness < 128 ? 'dark' : 'light';
+      }
+    }
+  }
+
+  // Default fallback
+  return 'dark';
+};
+
+// Get Roll20 theme colors
+export const getThemeColors = (): ThemeColors => {
+  const theme = detectTheme();
+
+  // Define static, clean theme colors
+  const colors: ThemeColors =
+    theme === 'dark'
+      ? {
+          theme: 'dark',
+          primary: '#4CAF50',
+          background: '#2b2b2b',
+          surface: '#1e1e1e',
+          border: '#444444',
+          text: '#ffffff',
+          textSecondary: '#cccccc',
+          input: '#333333',
+          inputBorder: '#555555',
+          button: '#404040',
+          buttonHover: '#505050',
+        }
+      : {
+          theme: 'light',
+          primary: '#4CAF50',
+          background: '#ffffff',
+          surface: '#f8f9fa',
+          border: '#dee2e6',
+          text: '#212529',
+          textSecondary: '#6c757d',
+          input: '#ffffff',
+          inputBorder: '#ced4da',
+          button: 'rgb(248, 249, 250)',
+          buttonHover: '#e9ecef',
+        };
+
+  return colors;
+};
+
+type ThemeChangeCallback = (theme: string, colors: ThemeColors) => void;
+
+// Monitor theme changes
+export const onThemeChange = (
+  callback: ThemeChangeCallback
+): MutationObserver => {
+  let currentTheme = detectTheme();
+
+  // Monitor localStorage changes for Roll20's colorTheme
+  const originalSetItem = localStorage.setItem;
+  localStorage.setItem = function (key: string, value: string) {
+    if (key === 'colorTheme' && (value === 'dark' || value === 'light')) {
+      const newTheme = value;
+      if (newTheme !== currentTheme) {
+        currentTheme = newTheme;
+        callback(newTheme, getThemeColors());
+      }
+    }
+    return originalSetItem.apply(this, [key, value]);
+  };
+
+  // Listen for storage events (changes from other tabs/windows)
+  window.addEventListener('storage', (e: StorageEvent) => {
+    if (
+      e.key === 'colorTheme' &&
+      (e.newValue === 'dark' || e.newValue === 'light')
+    ) {
+      const newTheme = e.newValue;
+      if (newTheme !== currentTheme) {
+        currentTheme = newTheme;
+        callback(newTheme, getThemeColors());
+      }
+    }
+  });
+
+  // Create mutation observer to watch for theme changes (fallback)
+  const observer = new MutationObserver(() => {
+    const newTheme = detectTheme();
+    if (newTheme !== currentTheme) {
+      currentTheme = newTheme;
+      callback(newTheme, getThemeColors());
+    }
+  });
+
+  // Watch for class changes on body and html
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['class', 'data-theme', 'style'],
+  });
+
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'data-theme', 'style'],
+  });
+
+  // Also watch for style changes in head
+  const head = document.head;
+  if (head) {
+    observer.observe(head, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  return observer;
+};
+
+// Default export with all functions
+const ThemeDetector = {
+  detectTheme,
+  parseColor,
+  getThemeColors,
+  onThemeChange,
+};
+
+export default ThemeDetector;
+
+// Legacy global exports for backward compatibility (temporary)
+if (typeof window !== 'undefined') {
+  window.ThemeDetector = ThemeDetector;
+}
+
+console.log('ThemeDetector module initialized');
