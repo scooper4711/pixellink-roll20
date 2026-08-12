@@ -57,6 +57,7 @@ interface PromptData {
   formula: string;
   ast: RootType;
   whisper?: boolean;
+  title?: string;
 }
 
 interface EvaluationValue {

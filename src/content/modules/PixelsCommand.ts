@@ -364,8 +364,14 @@ function completePrompt(): void {
 
   const formulaDisplay = getFormulaDisplay(formulaStr);
   const isSuccessRoll = isSuccessCountRoll(pendingPrompt!);
+  const title = pendingPrompt!.title || 'Pixels Dice';
 
-  const message = buildChatMessage(result, formulaDisplay, isSuccessRoll);
+  const message = buildChatMessage(
+    result,
+    formulaDisplay,
+    isSuccessRoll,
+    title
+  );
 
   if (isWhisper) {
     postChatMessage(`/w gm ${message}`);
@@ -384,7 +390,8 @@ function completePrompt(): void {
 function buildChatMessage(
   result: RollBase,
   formulaDisplay: string,
-  isSuccessRoll: boolean
+  isSuccessRoll: boolean,
+  title = 'Pixels Dice'
 ): string {
   const diceDisplay = buildDiceDisplay(result);
 
@@ -396,7 +403,7 @@ function buildChatMessage(
   }
 
   return (
-    `&{template:default} {{name=Pixels Dice}}` +
+    `&{template:default} {{name=${title}}}` +
     ` {{Rolling=${formulaDisplay}}}` +
     ` {{Dice=${diceDisplay}}}` +
     ` {{Result=${resultValue}}}`
@@ -698,7 +705,11 @@ function interceptCommand(textarea: HTMLTextAreaElement): boolean {
   return true;
 }
 
-function processFormula(formulaStr: string, isWhisper: boolean): void {
+function processFormula(
+  formulaStr: string,
+  isWhisper: boolean,
+  title?: string
+): void {
   const postChat: (msg: string) => void =
     window.postChatMessage || function () {};
 
@@ -715,10 +726,11 @@ function processFormula(formulaStr: string, isWhisper: boolean): void {
   }
 
   promptData.whisper = isWhisper;
+  promptData.title = title;
   startPrompt(promptData);
 }
 
-function interceptFormula(formulaStr: string): boolean {
+function interceptFormula(formulaStr: string, title?: string): boolean {
   if (!formulaStr || !formulaStr.trim()) {
     return false;
   }
@@ -728,7 +740,7 @@ function interceptFormula(formulaStr: string): boolean {
   if (containsRollQueries(trimmed)) {
     resolveRollQueries(
       trimmed,
-      resolved => processFormula(resolved, false),
+      resolved => processFormula(resolved, false, title),
       () => {}
     );
     return true;
@@ -750,6 +762,7 @@ function interceptFormula(formulaStr: string): boolean {
   }
 
   promptData.whisper = false;
+  promptData.title = title;
   startPrompt(promptData);
   return true;
 }

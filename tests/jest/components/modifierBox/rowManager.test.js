@@ -340,7 +340,8 @@ describe('Saved Roll Formula Row Manager', () => {
       window.ModifierBoxRowManager.executeFormula('2d6+3');
 
       expect(window.PixelsCommand.interceptFormula).toHaveBeenCalledWith(
-        '2d6+3'
+        '2d6+3',
+        undefined
       );
     });
 
@@ -359,7 +360,8 @@ describe('Saved Roll Formula Row Manager', () => {
       window.ModifierBoxRowManager.executeFormula('  2d6+3  ');
 
       expect(window.PixelsCommand.interceptFormula).toHaveBeenCalledWith(
-        '2d6+3'
+        '2d6+3',
+        undefined
       );
     });
   });

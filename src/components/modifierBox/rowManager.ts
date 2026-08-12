@@ -45,14 +45,14 @@ function migrateRowData(stored: RowData | null): RowData | null {
 /**
  * Execute a formula by invoking the /pixels command programmatically.
  */
-function executeFormula(formula: string): void {
+function executeFormula(formula: string, title?: string): void {
   if (!formula || !formula.trim()) {
     return;
   }
 
   const command = window.PixelsCommand;
   if (command && command.interceptFormula) {
-    command.interceptFormula(formula.trim());
+    command.interceptFormula(formula.trim(), title);
   } else {
     console.error(
       'PixelsCommand.interceptFormula not available. Is the content script loaded?'
@@ -255,7 +255,8 @@ function updateEventListeners(modifierBox: HTMLElement): void {
       formulaInput.addEventListener('keydown', (event: KeyboardEvent) => {
         if (event.key === 'Enter') {
           event.preventDefault();
-          executeFormula(formulaInput.value);
+          const name = nameInput?.value || undefined;
+          executeFormula(formulaInput.value, name);
         }
       });
     }
@@ -267,7 +268,8 @@ function updateEventListeners(modifierBox: HTMLElement): void {
           '.formula-input'
         ) as HTMLInputElement | null;
         if (formula && formula.value.trim()) {
-          executeFormula(formula.value);
+          const name = nameInput?.value || undefined;
+          executeFormula(formula.value, name);
         } else {
           // Visual feedback for empty formula
           if (formulaInput) {

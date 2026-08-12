@@ -109,7 +109,7 @@ interface PixelsCommandModule {
   isPromptActive(): boolean;
   cancelPrompt(): void;
   parseFormula(formulaStr: string): object | null;
-  interceptFormula(formulaStr: string): boolean;
+  interceptFormula(formulaStr: string, title?: string): boolean;
 }
 
 interface RollBatcherModule {
