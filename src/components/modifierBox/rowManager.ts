@@ -17,7 +17,7 @@ const CURRENT_VERSION = 2;
  * v2 row: { name, formula }
  */
 function migrateRowData(stored: RowData | null): RowData | null {
-  if (!stored || !Array.isArray(stored.rows)) {
+  if (!Array.isArray(stored?.rows)) {
     return null;
   }
 
@@ -32,7 +32,8 @@ function migrateRowData(stored: RowData | null): RowData | null {
       return { name: row.name || 'Roll', formula: row.formula };
     }
     const numericValue = Number.parseInt(row.value || '0') || 0;
-    const formula = numericValue === 0 ? '1d20' : `1d20${numericValue >= 0 ? '+' : ''}${numericValue}`;
+    const sign = numericValue >= 0 ? '+' : '';
+    const formula = numericValue === 0 ? '1d20' : `1d20${sign}${numericValue}`;
     return { name: row.name || 'Roll', formula };
   });
 
@@ -43,12 +44,12 @@ function migrateRowData(stored: RowData | null): RowData | null {
  * Execute a formula by invoking the /pixels command programmatically.
  */
 function executeFormula(formula: string, title?: string): void {
-  if (!formula || !formula.trim()) {
+  if (!formula?.trim()) {
     return;
   }
 
   const command = window.PixelsCommand;
-  if (command && command.interceptFormula) {
+  if (command?.interceptFormula) {
     command.interceptFormula(formula.trim(), title);
   } else {
     console.error('PixelsCommand.interceptFormula not available. Is the content script loaded?');
@@ -138,7 +139,7 @@ function addFormulaRow(modifierBox: HTMLElement): void {
   }
 
   // Force theme updates on the new elements
-  if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.forceElementUpdates) {
+  if (window.ModifierBoxThemeManager?.forceElementUpdates) {
     window.ModifierBoxThemeManager.forceElementUpdates(modifierBox);
   } else if (forceElementUpdates) {
     forceElementUpdates(modifierBox);
@@ -237,15 +238,13 @@ function updateEventListeners(modifierBox: HTMLElement): void {
     if (rollButton) {
       rollButton.onclick = function (): void {
         const formula = row.querySelector('.formula-input') as HTMLInputElement | null;
-        if (formula && formula.value.trim()) {
+        if (formula?.value.trim()) {
           const name = nameInput?.value || undefined;
           executeFormula(formula.value, name);
-        } else {
+        } else if (formulaInput) {
           // Visual feedback for empty formula
-          if (formulaInput) {
-            formulaInput.classList.add('formula-invalid');
-            setTimeout(() => formulaInput.classList.remove('formula-invalid'), 600);
-          }
+          formulaInput.classList.add('formula-invalid');
+          setTimeout(() => formulaInput.classList.remove('formula-invalid'), 600);
         }
       };
     }
@@ -310,7 +309,7 @@ function saveRows(modifierBox: HTMLElement): void {
  */
 function applyRows(modifierBox: HTMLElement, data: RowData): boolean {
   const migrated = migrateRowData(data);
-  if (!modifierBox || !migrated || !Array.isArray(migrated.rows)) {
+  if (!modifierBox || !Array.isArray(migrated?.rows)) {
     return false;
   }
 
@@ -345,7 +344,7 @@ function applyRows(modifierBox: HTMLElement, data: RowData): boolean {
   updateEventListeners(modifierBox);
 
   // Force theme updates on the restored elements
-  if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.forceElementUpdates) {
+  if (window.ModifierBoxThemeManager?.forceElementUpdates) {
     window.ModifierBoxThemeManager.forceElementUpdates(modifierBox);
   } else if (forceElementUpdates) {
     forceElementUpdates(modifierBox);
@@ -383,7 +382,7 @@ function loadRows(modifierBox: HTMLElement): boolean {
     }
 
     const data = JSON.parse(stored) as RowData;
-    if (!data.rows || !Array.isArray(data.rows)) {
+    if (!Array.isArray(data?.rows)) {
       return false;
     }
 
