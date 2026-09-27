@@ -19,9 +19,7 @@ function setupDragAndDrop(modifierBox: HTMLElement): void {
     return;
   }
 
-  const content = modifierBox.querySelector(
-    '.pixels-content'
-  ) as ContentElementWithRef | null;
+  const content = modifierBox.querySelector('.pixels-content') as ContentElementWithRef | null;
   if (!content) {
     console.error('setupDragAndDrop: content area not found');
     return;
@@ -51,10 +49,7 @@ function addDragHandleToRow(row: HTMLElement): void {
   row.classList.add('draggable-row');
 }
 
-function setupEventDelegation(
-  content: ContentElementWithRef,
-  modifierBox: HTMLElement
-): void {
+function setupEventDelegation(content: ContentElementWithRef, modifierBox: HTMLElement): void {
   // Mouse events for drag initiation
   content.addEventListener('mousedown', handleMouseDown);
   document.addEventListener('mousemove', handleMouseMove);
@@ -91,11 +86,7 @@ function handleTouchStart(e: TouchEvent): void {
 
   e.preventDefault();
   const touch = e.touches[0];
-  startDrag(
-    dragHandle.parentElement as HTMLElement,
-    touch.clientX,
-    touch.clientY
-  );
+  startDrag(dragHandle.parentElement as HTMLElement, touch.clientX, touch.clientY);
 }
 
 function startDrag(row: HTMLElement, clientX: number, clientY: number): void {
@@ -192,22 +183,27 @@ function updateDropTarget(clientX: number, clientY: number): void {
 
   // Move placeholder to the appropriate position
   if (insertBeforeElement !== placeholder.nextSibling) {
-    content.insertBefore(placeholder, insertBeforeElement);
+    if (insertBeforeElement) {
+      insertBeforeElement.before(placeholder);
+    } else {
+      content.appendChild(placeholder);
+    }
   }
+}
+
+function finishPointerRelease(): void {
+  if (!isDragging) {
+    return;
+  }
+  endDrag();
 }
 
 function handleMouseUp(_e: MouseEvent): void {
-  if (!isDragging) {
-    return;
-  }
-  endDrag();
+  finishPointerRelease();
 }
 
 function handleTouchEnd(_e: TouchEvent): void {
-  if (!isDragging) {
-    return;
-  }
-  endDrag();
+  finishPointerRelease();
 }
 
 function endDrag(): void {
@@ -215,9 +211,7 @@ function endDrag(): void {
     return;
   }
 
-  const content = draggedElement.closest(
-    '.pixels-content'
-  ) as ContentElementWithRef | null;
+  const content = draggedElement.closest('.pixels-content') as ContentElementWithRef | null;
   const modifierBox = content?._modifierBox;
 
   // Reset dragged element styles
@@ -261,9 +255,7 @@ function cleanup(): void {
 if (window.ModifierBoxRowManager) {
   const originalAddRow = window.ModifierBoxRowManager.addModifierRow;
   if (originalAddRow) {
-    window.ModifierBoxRowManager.addModifierRow = function (
-      modifierBox: HTMLElement
-    ): void {
+    window.ModifierBoxRowManager.addModifierRow = function (modifierBox: HTMLElement): void {
       originalAddRow.call(this, modifierBox);
 
       // Add drag handle to the newly created row

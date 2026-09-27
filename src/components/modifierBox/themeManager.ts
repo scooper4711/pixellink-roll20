@@ -13,9 +13,7 @@ let themeObserver: MutationObserver | null = null;
 function addModifierBoxStyles(): void {
   // Check if CSSLoader is available
   if (!loadMultipleCSS) {
-    console.error(
-      'CSSLoader utility not found. Loading inline styles as fallback.'
-    );
+    console.error('CSSLoader utility not found. Loading inline styles as fallback.');
     addInlineStyles();
     return;
   }
@@ -42,10 +40,7 @@ function addModifierBoxStyles(): void {
       // CSS files loaded successfully
     })
     .catch((error: unknown) => {
-      console.error(
-        'Failed to load CSS files, falling back to inline styles:',
-        error
-      );
+      console.error('Failed to load CSS files, falling back to inline styles:', error);
       addInlineStyles();
     });
 }
@@ -113,9 +108,7 @@ function updateTheme(modifierBox: HTMLElement | null): void {
   // Let CSS handle the styling now that we have the proper theme class applied
 }
 
-function startThemeMonitoring(
-  onThemeChangeCallback: (theme: string, colors: ThemeColors) => void
-): void {
+function startThemeMonitoring(onThemeChangeCallback: (theme: string, colors: ThemeColors) => void): void {
   if (onThemeChange && !themeObserver) {
     themeObserver = onThemeChange((newTheme: string, colors: ThemeColors) => {
       if (onThemeChangeCallback) {
@@ -155,10 +148,7 @@ function forceElementUpdates(modifierBox: HTMLElement | null): void {
 
 // Helper function to reset module state (for testing)
 function resetState(): void {
-  if (themeObserver) {
-    themeObserver.disconnect();
-    themeObserver = null;
-  }
+  stopThemeMonitoring();
 }
 
 // Export functions
