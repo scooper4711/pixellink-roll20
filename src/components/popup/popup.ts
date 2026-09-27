@@ -717,13 +717,13 @@ function downloadBundle(bundle: ProfileExportBundle, filename: string): void {
 
 // Make a filesystem-safe slug from a profile name.
 function slugify(name: string): string {
-  return (
-    name
-      .trim()
-      .replace(/[^a-z0-9]+/gi, '-')
-      .replace(/^-+|-+$/g, '')
-      .toLowerCase() || 'profile'
-  );
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(part => part.length > 0)
+    .join('-');
+  return slug || 'profile';
 }
 
 // Export all profiles to a downloaded JSON file.
