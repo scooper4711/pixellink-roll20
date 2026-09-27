@@ -11,8 +11,7 @@
 'use strict';
 
 import { DiceRoller } from '@3d-dice/dice-roller-parser';
-import type { RootType, ParsedType } from '@3d-dice/dice-roller-parser';
-import type { RollBase } from '@3d-dice/dice-roller-parser';
+import type { RootType, ParsedType, RollBase } from '@3d-dice/dice-roller-parser';
 
 // Safety limit for exploding dice to prevent infinite loops
 const MAX_EXPLOSIONS_PER_GROUP = 20;
@@ -103,7 +102,7 @@ function parseFormula(formulaStr: string): RootType | null {
  * Normalize comparison operators to match library expectations.
  */
 function normalizeOperators(formula: string): string {
-  return formula.replace(/>=/g, '>').replace(/<=/g, '<');
+  return formula.replaceAll('>=', '>').replaceAll('<=', '<');
 }
 
 /**
@@ -126,11 +125,7 @@ function buildSlotsFromAst(ast: RootType, formulaStr: string): PromptData {
 /**
  * Recursively walk the AST to find all die nodes and build slots.
  */
-function walkForDice(
-  node: AstNode | null,
-  slots: Slot[],
-  groups: DieGroup[]
-): void {
+function walkForDice(node: AstNode | null, slots: Slot[], groups: DieGroup[]): void {
   if (!node) {
     return;
   }
@@ -203,7 +198,6 @@ function walkForDice(
   // Inline expression
   if (node.type === 'inline') {
     walkForDice(node.expr || null, slots, groups);
-    return;
   }
 }
 
@@ -243,12 +237,7 @@ function findExplosionMod(mods: DieMod[] | null): DieMod | null {
   if (!mods) {
     return null;
   }
-  return (
-    mods.find(
-      m =>
-        m.type === 'explode' || m.type === 'compound' || m.type === 'penetrate'
-    ) || null
-  );
+  return mods.find(m => m.type === 'explode' || m.type === 'compound' || m.type === 'penetrate') || null;
 }
 
 /**
@@ -281,11 +270,7 @@ function checkExplosion(value: number, group: DieGroup): boolean {
 /**
  * Check if a value meets an explosion target condition.
  */
-function meetsExplosionTarget(
-  value: number,
-  dieSize: DieSize,
-  mod: DieMod
-): boolean {
+function meetsExplosionTarget(value: number, dieSize: DieSize, mod: DieMod): boolean {
   const target = mod.target;
 
   // No target: explode on max
@@ -311,11 +296,7 @@ function checkReroll(value: number, group: DieGroup): boolean {
 /**
  * Check if a value meets a reroll target condition.
  */
-function meetsRerollTarget(
-  value: number,
-  _dieSize: DieSize,
-  mod: DieMod
-): boolean {
+function meetsRerollTarget(value: number, _dieSize: DieSize, mod: DieMod): boolean {
   const target = mod.target;
 
   // No target: reroll on min (1)
@@ -345,11 +326,7 @@ function extractTargetValue(target: ModTarget): number | null {
 /**
  * Compare a value against a target using the given comparison operator.
  */
-function compareValue(
-  value: number,
-  operator: string,
-  targetValue: number | null
-): boolean {
+function compareValue(value: number, operator: string, targetValue: number | null): boolean {
   if (targetValue === null) {
     return false;
   }
@@ -400,10 +377,7 @@ function markSlotForReroll(promptData: PromptData, slotIndex: number): void {
 /**
  * Evaluate the final result using the library with collected physical dice values.
  */
-function evaluateWithValues(
-  formulaStr: string,
-  collectedValues: EvaluationValue[]
-): RollBase {
+function evaluateWithValues(formulaStr: string, collectedValues: EvaluationValue[]): RollBase {
   const values = [...collectedValues];
   let valueIndex = 0;
 
@@ -448,11 +422,7 @@ function buildEvaluationOrder(promptData: PromptData): EvaluationValue[] {
  * Determine if the formula is a "count successes" type roll.
  */
 function isSuccessCountRoll(promptData: PromptData): boolean {
-  return promptData.groups.some(
-    g =>
-      g.targets &&
-      g.targets.some(t => t.type === 'success' || t.type === 'failure')
-  );
+  return promptData.groups.some(g => g.targets && g.targets.some(t => t.type === 'success' || t.type === 'failure'));
 }
 
 /**
