@@ -71,7 +71,7 @@ function detectAndApplyTheme(): void {
       if (tabId !== undefined) {
         const tab = tabs[0];
 
-        if (!tab.url || (!tab.url.includes('roll20.net') && !tab.url.includes('app.roll20.net'))) {
+        if (!(tab.url?.includes('roll20.net') || tab.url?.includes('app.roll20.net'))) {
           applyTheme('dark');
           return;
         }
@@ -79,7 +79,7 @@ function detectAndApplyTheme(): void {
         chrome.tabs.sendMessage(tabId, { action: 'getTheme' }, (response: MessageResponse | undefined) => {
           if (chrome.runtime.lastError) {
             executeThemeDetectionScript(tabId);
-          } else if (response && response.theme) {
+          } else if (response?.theme) {
             applyTheme(response.theme);
           } else {
             executeThemeDetectionScript(tabId);
@@ -136,7 +136,7 @@ function executeThemeDetectionScript(tabId: number): void {
         },
       })
       .then((results: chrome.scripting.InjectionResult[]) => {
-        if (results && results[0] && results[0].result) {
+        if (results?.[0]?.result) {
           applyTheme(results[0].result as string);
         } else {
           applyTheme('dark');

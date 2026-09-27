@@ -84,7 +84,7 @@ interface AstNode {
  * Returns null if the formula is invalid.
  */
 function parseFormula(formulaStr: string): RootType | null {
-  if (!formulaStr || !formulaStr.trim()) {
+  if (!formulaStr?.trim()) {
     return null;
   }
 
@@ -422,7 +422,7 @@ function buildEvaluationOrder(promptData: PromptData): EvaluationValue[] {
  * Determine if the formula is a "count successes" type roll.
  */
 function isSuccessCountRoll(promptData: PromptData): boolean {
-  return promptData.groups.some(g => g.targets && g.targets.some(t => t.type === 'success' || t.type === 'failure'));
+  return promptData.groups.some(g => g.targets?.some(t => t.type === 'success' || t.type === 'failure') ?? false);
 }
 
 /**

@@ -52,7 +52,7 @@ if (window.roll20PixelsLoaded === undefined) {
 
     setupMessageListener();
 
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
       try {
         chrome.runtime.onMessage.addListener(
           (
@@ -103,7 +103,7 @@ if (window.roll20PixelsLoaded === undefined) {
                 if (box && window.ModifierBoxRowManager?.serializeRows) {
                   rowsData = window.ModifierBoxRowManager.serializeRows(box);
                 }
-                if (!rowsData || !rowsData.rows || rowsData.rows.length === 0) {
+                if (!rowsData?.rows?.length) {
                   try {
                     const stored =
                       localStorage.getItem('pixels_saved_rolls') || localStorage.getItem('pixels_modifier_rows');
@@ -186,7 +186,7 @@ if (window.roll20PixelsLoaded === undefined) {
 
               case 'blinkByName': {
                 const pixelToBlink = findPixelByName(msg.name as string);
-                if (pixelToBlink && pixelToBlink.isConnected) {
+                if (pixelToBlink?.isConnected) {
                   pixelToBlink
                     .blink({ r: 0xcc, g: 0x66, b: 0x00 })
                     .catch((err: Error) => log(`Blink failed for ${msg.name}: ${err.message}`));
