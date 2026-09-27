@@ -169,8 +169,8 @@ function createModifierBoxFallback(): HTMLElement {
             <div class="pixels-content">
                 <div class="modifier-row">
                     <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
-                    <input type="text" class="modifier-name" placeholder="Name" value="Attack" data-index="0">
-                    <input type="text" class="formula-input" placeholder="e.g. 2d6+3" value="1d20" data-index="0">
+                    <input type="text" class="modifier-name" placeholder="Name" aria-label="Roll name" value="Attack" data-index="0">
+                    <input type="text" class="formula-input" placeholder="e.g. 2d6+3" aria-label="Dice formula" value="1d20" data-index="0">
                     <button class="roll-formula-btn" type="button" title="Roll this formula">Roll</button>
                     <button class="remove-row-btn" type="button">×</button>
                 </div>

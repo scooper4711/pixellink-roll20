@@ -115,8 +115,8 @@ function addFormulaRow(modifierBox: HTMLElement): void {
   newRow.className = 'modifier-row';
   newRow.innerHTML = `
             <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
-            <input type="text" class="modifier-name" placeholder="Name" value="Roll" data-index="${rowCounter}">
-            <input type="text" class="formula-input" placeholder="e.g. 2d6+3" value="" data-index="${rowCounter}">
+            <input type="text" class="modifier-name" placeholder="Name" aria-label="Roll name" value="Roll" data-index="${rowCounter}">
+            <input type="text" class="formula-input" placeholder="e.g. 2d6+3" aria-label="Dice formula" value="" data-index="${rowCounter}">
             <button class="roll-formula-btn" type="button" title="Roll this formula">Roll</button>
             <button class="remove-row-btn" type="button">×</button>
         `;
@@ -331,8 +331,8 @@ function applyRows(modifierBox: HTMLElement, data: RowData): boolean {
     newRow.className = 'modifier-row';
     newRow.innerHTML = `
           <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
-          <input type="text" class="modifier-name" placeholder="Name" value="${escapeHtml(rowData.name)}" data-index="${index}">
-          <input type="text" class="formula-input" placeholder="e.g. 2d6+3" value="${escapeHtml(rowData.formula)}" data-index="${index}">
+          <input type="text" class="modifier-name" placeholder="Name" aria-label="Roll name" value="${escapeHtml(rowData.name)}" data-index="${index}">
+          <input type="text" class="formula-input" placeholder="e.g. 2d6+3" aria-label="Dice formula" value="${escapeHtml(rowData.formula)}" data-index="${index}">
           <button class="roll-formula-btn" type="button" title="Roll this formula">Roll</button>
           <button class="remove-row-btn" type="button">×</button>
         `;
@@ -444,8 +444,8 @@ function resetAllRows(modifierBox: HTMLElement): void {
   defaultRow.className = 'modifier-row';
   defaultRow.innerHTML = `
       <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
-      <input type="text" class="modifier-name" placeholder="Name" value="Attack" data-index="0">
-      <input type="text" class="formula-input" placeholder="e.g. 2d6+3" value="1d20" data-index="0">
+      <input type="text" class="modifier-name" placeholder="Name" aria-label="Roll name" value="Attack" data-index="0">
+      <input type="text" class="formula-input" placeholder="e.g. 2d6+3" aria-label="Dice formula" value="1d20" data-index="0">
       <button class="roll-formula-btn" type="button" title="Roll this formula">Roll</button>
       <button class="remove-row-btn" type="button">×</button>
     `;
