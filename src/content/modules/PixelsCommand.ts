@@ -112,6 +112,65 @@ function createQueryModal(): HTMLElement {
   return modal;
 }
 
+function buildQuerySelect(query: ExtractedQuery, index: number): HTMLSelectElement {
+  const select = document.createElement('select');
+  select.className = 'pixels-query-select';
+  select.id = `pixels-query-input-${index}`;
+  select.dataset.index = String(index);
+  for (const opt of query.options ?? []) {
+    const optEl = document.createElement('option');
+    optEl.value = opt;
+    optEl.textContent = opt;
+    select.appendChild(optEl);
+  }
+  return select;
+}
+
+function buildQueryInput(query: ExtractedQuery, index: number): HTMLInputElement {
+  const input = document.createElement('input');
+  input.className = 'pixels-query-input';
+  input.id = `pixels-query-input-${index}`;
+  input.type = 'text';
+  input.value = query.defaultValue;
+  input.dataset.index = String(index);
+  return input;
+}
+
+function buildQueryField(query: ExtractedQuery, index: number): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'pixels-query-row';
+
+  const label = document.createElement('label');
+  label.className = 'pixels-query-label';
+  label.textContent = query.label;
+  label.setAttribute('for', `pixels-query-input-${index}`);
+  row.appendChild(label);
+
+  row.appendChild(query.options ? buildQuerySelect(query, index) : buildQueryInput(query, index));
+  return row;
+}
+
+function replaceWithClone<T extends Node>(node: T): T {
+  const clone = node.cloneNode(true) as T;
+  node.parentNode!.replaceChild(clone, node);
+  return clone;
+}
+
+function collectQueryValues(modal: HTMLElement, count: number): string[] {
+  const values: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const el = modal.querySelector(`#pixels-query-input-${i}`) as HTMLInputElement | HTMLSelectElement;
+    values.push(el.value);
+  }
+  return values;
+}
+
+function submitQueryValues(queries: ExtractedQuery[], onSubmit: (values: string[]) => void): void {
+  const values = collectQueryValues(queryModalElement!, queries.length);
+  hideQueryModal();
+  onSubmit(values);
+}
+
 function showQueryModal(queries: ExtractedQuery[], onSubmit: (values: string[]) => void, onCancel: () => void): void {
   queryModalElement ??= createQueryModal();
   queryModalElement.style.display = 'block';
@@ -120,79 +179,27 @@ function showQueryModal(queries: ExtractedQuery[], onSubmit: (values: string[]) 
   fieldsEl.innerHTML = '';
 
   for (let i = 0; i < queries.length; i++) {
-    const query = queries[i];
-    const row = document.createElement('div');
-    row.className = 'pixels-query-row';
-
-    const label = document.createElement('label');
-    label.className = 'pixels-query-label';
-    label.textContent = query.label;
-    label.setAttribute('for', `pixels-query-input-${i}`);
-    row.appendChild(label);
-
-    if (query.options) {
-      const select = document.createElement('select');
-      select.className = 'pixels-query-select';
-      select.id = `pixels-query-input-${i}`;
-      select.dataset.index = String(i);
-      for (const opt of query.options) {
-        const optEl = document.createElement('option');
-        optEl.value = opt;
-        optEl.textContent = opt;
-        select.appendChild(optEl);
-      }
-      row.appendChild(select);
-    } else {
-      const input = document.createElement('input');
-      input.className = 'pixels-query-input';
-      input.id = `pixels-query-input-${i}`;
-      input.type = 'text';
-      input.value = query.defaultValue;
-      input.dataset.index = String(i);
-      row.appendChild(input);
-    }
-
-    fieldsEl.appendChild(row);
+    fieldsEl.appendChild(buildQueryField(queries[i], i));
   }
 
   // Wire up event handlers (replace old ones via cloneNode)
-  const cancelBtn = queryModalElement.querySelector('.pixels-query-cancel')!;
-  const newCancelBtn = cancelBtn.cloneNode(true);
-  cancelBtn.parentNode!.replaceChild(newCancelBtn, cancelBtn);
+  const newCancelBtn = replaceWithClone(queryModalElement.querySelector('.pixels-query-cancel')!);
+  const newSubmitBtn = replaceWithClone(queryModalElement.querySelector('.pixels-query-submit')!);
 
-  const submitBtn = queryModalElement.querySelector('.pixels-query-submit')!;
-  const newSubmitBtn = submitBtn.cloneNode(true);
-  submitBtn.parentNode!.replaceChild(newSubmitBtn, submitBtn);
-
-  const collectValues = (): string[] => {
-    const values: string[] = [];
-    for (let i = 0; i < queries.length; i++) {
-      const el = queryModalElement!.querySelector(`#pixels-query-input-${i}`) as HTMLInputElement | HTMLSelectElement;
-      values.push(el.value);
-    }
-    return values;
-  };
-
-  const handleSubmit = (): void => {
-    const values = collectValues();
-    hideQueryModal();
-    onSubmit(values);
-  };
-
-  const handleCancel = (): void => {
+  newCancelBtn.addEventListener('click', () => {
     hideQueryModal();
     if (onCancel) {
       onCancel();
     }
-  };
-
-  newCancelBtn.addEventListener('click', handleCancel);
-  newSubmitBtn.addEventListener('click', handleSubmit);
+  });
+  newSubmitBtn.addEventListener('click', () => {
+    submitQueryValues(queries, onSubmit);
+  });
 
   fieldsEl.addEventListener('keydown', (event: Event) => {
     if ((event as KeyboardEvent).key === 'Enter') {
       event.preventDefault();
-      handleSubmit();
+      submitQueryValues(queries, onSubmit);
     }
   });
 
