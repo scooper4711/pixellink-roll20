@@ -29,11 +29,7 @@ type StorageAreaName = 'local' | 'sync';
 // available in this context (e.g. test environment without a storage mock).
 function area(name: StorageAreaName): chrome.storage.StorageArea | null {
   try {
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.storage &&
-      chrome.storage[name]
-    ) {
+    if (typeof chrome !== 'undefined' && chrome.storage?.[name]) {
       return chrome.storage[name];
     }
   } catch {
@@ -44,11 +40,7 @@ function area(name: StorageAreaName): chrome.storage.StorageArea | null {
 
 function hasLastError(): boolean {
   try {
-    return Boolean(
-      typeof chrome !== 'undefined' &&
-      chrome.runtime &&
-      chrome.runtime.lastError
-    );
+    return Boolean(typeof chrome !== 'undefined' && chrome.runtime?.lastError);
   } catch {
     return false;
   }
@@ -76,11 +68,7 @@ function readArea(name: StorageAreaName, key: string): Promise<unknown> {
 }
 
 // Promise wrapper around chrome.storage[area].set.
-function writeArea(
-  name: StorageAreaName,
-  key: string,
-  value: unknown
-): Promise<boolean> {
+function writeArea(name: StorageAreaName, key: string, value: unknown): Promise<boolean> {
   const a = area(name);
   if (!a) {
     return Promise.resolve(false);
@@ -101,7 +89,7 @@ function mergeProfiles(
   localProfiles: ProfileMap | null | undefined,
   syncProfiles: ProfileMap | null | undefined
 ): ProfileMap {
-  const merged: ProfileMap = { ...(localProfiles || {}) };
+  const merged: ProfileMap = { ...localProfiles };
   Object.entries(syncProfiles || {}).forEach(([name, profile]) => {
     const existing = merged[name];
     if (!existing || (profile?.savedAt || 0) >= (existing.savedAt || 0)) {
@@ -117,26 +105,18 @@ async function getProfiles(): Promise<ProfileMap> {
     readArea('local', PROFILES_KEY),
     readArea('sync', PROFILES_KEY),
   ]);
-  return mergeProfiles(
-    localProfiles as ProfileMap | null,
-    syncProfiles as ProfileMap | null
-  );
+  return mergeProfiles(localProfiles as ProfileMap | null, syncProfiles as ProfileMap | null);
 }
 
 // Save (or overwrite) a profile by name. `data` is { rows, selectedIndex }.
-async function saveProfile(
-  name: string,
-  data: { rows?: RowEntry[]; selectedIndex?: number }
-): Promise<boolean> {
+async function saveProfile(name: string, data: { rows?: RowEntry[]; selectedIndex?: number }): Promise<boolean> {
   if (!name || typeof name !== 'string') {
     return false;
   }
   const profiles = await getProfiles();
   profiles[name] = {
     rows: Array.isArray(data?.rows) ? data.rows : [],
-    selectedIndex: Number.isInteger(data?.selectedIndex)
-      ? data.selectedIndex!
-      : -1,
+    selectedIndex: Number.isInteger(data?.selectedIndex) ? data.selectedIndex! : -1,
     savedAt: Date.now(),
   };
   const [localOk] = await Promise.all([
@@ -153,10 +133,7 @@ async function deleteProfile(name: string): Promise<boolean> {
     return false;
   }
   delete profiles[name];
-  await Promise.all([
-    writeArea('local', PROFILES_KEY, profiles),
-    writeArea('sync', PROFILES_KEY, profiles),
-  ]);
+  await Promise.all([writeArea('local', PROFILES_KEY, profiles), writeArea('sync', PROFILES_KEY, profiles)]);
   return true;
 }
 
@@ -192,9 +169,7 @@ async function exportProfiles(): Promise<ProfileExportBundle> {
 }
 
 // Build an export bundle containing a single profile by name.
-async function exportProfile(
-  name: string
-): Promise<ProfileExportBundle | null> {
+async function exportProfile(name: string): Promise<ProfileExportBundle | null> {
   const profiles = await getProfiles();
   if (!name || !(name in profiles)) {
     return null;
@@ -228,13 +203,9 @@ interface ImportResult {
 }
 
 // Merge an exported bundle into the saved profiles.
-async function importProfiles(
-  bundle: ProfileExportBundle | null
-): Promise<ImportResult> {
-  const incoming =
-    bundle && bundle.profiles && typeof bundle.profiles === 'object'
-      ? bundle.profiles
-      : null;
+async function importProfiles(bundle: ProfileExportBundle | null): Promise<ImportResult> {
+  const bundleProfiles = bundle?.profiles;
+  const incoming = bundleProfiles && typeof bundleProfiles === 'object' ? bundleProfiles : null;
   if (!incoming) {
     return { imported: 0, skipped: 0, error: 'invalid' };
   }
@@ -252,9 +223,7 @@ async function importProfiles(
     const finalName = uniqueName(name, names);
     profiles[finalName] = {
       rows: profile.rows,
-      selectedIndex: Number.isInteger(profile.selectedIndex)
-        ? profile.selectedIndex
-        : -1,
+      selectedIndex: Number.isInteger(profile.selectedIndex) ? profile.selectedIndex : -1,
       savedAt: Date.now(),
     };
     names.add(finalName);
@@ -262,10 +231,7 @@ async function importProfiles(
   });
 
   if (imported > 0) {
-    await Promise.all([
-      writeArea('local', PROFILES_KEY, profiles),
-      writeArea('sync', PROFILES_KEY, profiles),
-    ]);
+    await Promise.all([writeArea('local', PROFILES_KEY, profiles), writeArea('sync', PROFILES_KEY, profiles)]);
   }
 
   return { imported, skipped };

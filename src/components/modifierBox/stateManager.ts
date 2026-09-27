@@ -65,16 +65,12 @@ export function findExistingModifierBox(): HTMLElement | null {
 // Reset module state (for testing)
 export function resetState(): void {
   // Remove existing element from DOM if it exists
-  if (modifierBox && modifierBox.parentNode) {
-    modifierBox.parentNode.removeChild(modifierBox);
-  }
+  modifierBox?.remove();
 
   // Also remove any other modifier boxes that might exist in DOM
   const existingBoxes = document.querySelectorAll('#pixels-modifier-box, .PIXELS_EXTENSION_BOX_FIND_ME');
   existingBoxes.forEach(box => {
-    if (box.parentNode) {
-      box.parentNode.removeChild(box);
-    }
+    box.remove();
   });
 
   modifierBox = null;
@@ -88,7 +84,7 @@ export function updateLegacyDefaults(modifierBox: HTMLElement | null): void {
   if (!modifierBox) return;
 
   const firstNameInput = modifierBox.querySelector('.modifier-name') as HTMLInputElement | null;
-  if (firstNameInput && (firstNameInput.value === 'None' || firstNameInput.value === 'D20')) {
+  if (firstNameInput?.value === 'None' || firstNameInput?.value === 'D20') {
     firstNameInput.value = 'Attack';
     firstNameInput.placeholder = 'Name';
   }
