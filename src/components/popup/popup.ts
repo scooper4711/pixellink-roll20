@@ -25,12 +25,9 @@ function getKnownDice(): Promise<KnownDie[]> {
       resolve([]);
       return;
     }
-    chrome.storage.local.get(
-      KNOWN_DICE_KEY,
-      (result: { [key: string]: KnownDie[] }) => {
-        resolve(result[KNOWN_DICE_KEY] || []);
-      }
-    );
+    chrome.storage.local.get(KNOWN_DICE_KEY, (result: { [key: string]: KnownDie[] }) => {
+      resolve(result[KNOWN_DICE_KEY] || []);
+    });
   });
 }
 
@@ -40,15 +37,10 @@ function removeKnownDie(name: string): Promise<void> {
       resolve();
       return;
     }
-    chrome.storage.local.get(
-      KNOWN_DICE_KEY,
-      (result: { [key: string]: KnownDie[] }) => {
-        const dice = (result[KNOWN_DICE_KEY] || []).filter(
-          (d: KnownDie) => d.name !== name
-        );
-        chrome.storage.local.set({ [KNOWN_DICE_KEY]: dice }, resolve);
-      }
-    );
+    chrome.storage.local.get(KNOWN_DICE_KEY, (result: { [key: string]: KnownDie[] }) => {
+      const dice = (result[KNOWN_DICE_KEY] || []).filter((d: KnownDie) => d.name !== name);
+      chrome.storage.local.set({ [KNOWN_DICE_KEY]: dice }, resolve);
+    });
   });
 }
 
@@ -74,40 +66,29 @@ type SendMessageCallback = (response: MessageResponse | undefined) => void;
 // Simple theme detection and CSS loading
 function detectAndApplyTheme(): void {
   if (typeof chrome !== 'undefined' && chrome.tabs) {
-    chrome.tabs.query(
-      { active: true, currentWindow: true },
-      (tabs: chrome.tabs.Tab[]) => {
-        const tabId = tabs[0]?.id;
-        if (tabId !== undefined) {
-          const tab = tabs[0];
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs: chrome.tabs.Tab[]) => {
+      const tabId = tabs[0]?.id;
+      if (tabId !== undefined) {
+        const tab = tabs[0];
 
-          if (
-            !tab.url ||
-            (!tab.url.includes('roll20.net') &&
-              !tab.url.includes('app.roll20.net'))
-          ) {
-            applyTheme('dark');
-            return;
-          }
-
-          chrome.tabs.sendMessage(
-            tabId,
-            { action: 'getTheme' },
-            (response: MessageResponse | undefined) => {
-              if (chrome.runtime.lastError) {
-                executeThemeDetectionScript(tabId);
-              } else if (response && response.theme) {
-                applyTheme(response.theme);
-              } else {
-                executeThemeDetectionScript(tabId);
-              }
-            }
-          );
-        } else {
+        if (!tab.url || (!tab.url.includes('roll20.net') && !tab.url.includes('app.roll20.net'))) {
           applyTheme('dark');
+          return;
         }
+
+        chrome.tabs.sendMessage(tabId, { action: 'getTheme' }, (response: MessageResponse | undefined) => {
+          if (chrome.runtime.lastError) {
+            executeThemeDetectionScript(tabId);
+          } else if (response && response.theme) {
+            applyTheme(response.theme);
+          } else {
+            executeThemeDetectionScript(tabId);
+          }
+        });
+      } else {
+        applyTheme('dark');
       }
-    );
+    });
   } else {
     applyTheme('dark');
   }
@@ -133,34 +114,22 @@ function executeThemeDetectionScript(tabId: number): void {
           const body = document.body;
           const html = document.documentElement;
 
-          if (
-            body.classList.contains('lightmode') ||
-            html.classList.contains('lightmode')
-          ) {
+          if (body.classList.contains('lightmode') || html.classList.contains('lightmode')) {
             return 'light';
           }
 
-          if (
-            body.classList.contains('roll20-light-theme') ||
-            html.classList.contains('roll20-light-theme')
-          ) {
+          if (body.classList.contains('roll20-light-theme') || html.classList.contains('roll20-light-theme')) {
             return 'light';
           }
 
           // Check for Roll20's actual theme classes
-          if (
-            body.classList.contains('darkmode') ||
-            html.classList.contains('darkmode')
-          ) {
+          if (body.classList.contains('darkmode') || html.classList.contains('darkmode')) {
             return 'dark';
           }
 
           // Log what we actually found
           console.log('Direct script: No theme detected, defaulting to dark');
-          console.log(
-            'Direct script: All localStorage keys:',
-            Object.keys(localStorage)
-          );
+          console.log('Direct script: All localStorage keys:', Object.keys(localStorage));
 
           // Default to dark theme
           return 'dark';
@@ -218,30 +187,20 @@ function showText(_message?: string): void {
 }
 
 // Send message to injected JS
-function sendMessage(
-  data: Record<string, unknown>,
-  responseCallback?: SendMessageCallback
-): void {
-  chrome.tabs.query(
-    { active: true, currentWindow: true },
-    (tabs: chrome.tabs.Tab[]) => {
-      if (tabs[0]?.id) {
-        chrome.tabs.sendMessage(
-          tabs[0].id,
-          data,
-          (response: MessageResponse | undefined) => {
-            if (chrome.runtime.lastError) {
-              // Content script not available (tab not on Roll20, page not loaded, etc.)
-              return;
-            }
-            if (responseCallback) {
-              responseCallback(response);
-            }
-          }
-        );
-      }
+function sendMessage(data: Record<string, unknown>, responseCallback?: SendMessageCallback): void {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs: chrome.tabs.Tab[]) => {
+    if (tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, data, (response: MessageResponse | undefined) => {
+        if (chrome.runtime.lastError) {
+          // Content script not available (tab not on Roll20, page not loaded, etc.)
+          return;
+        }
+        if (responseCallback) {
+          responseCallback(response);
+        }
+      });
     }
-  );
+  });
 }
 
 // --- Known Dice ---------------------------------------------------------------
@@ -418,26 +377,23 @@ async function renderKnownDice(): Promise<void> {
 
   // Query which dice are currently connected (with battery info)
   const diceStatus = await new Promise<DiceStatusResponse>(resolve => {
-    sendMessage(
-      { action: 'getConnectedDice' },
-      (response: MessageResponse | undefined) => {
-        if (chrome.runtime.lastError || !response) {
-          resolve({
-            connected: [],
-            batteryLevels: {},
-            rssiLevels: {},
-            dieTypes: {},
-          });
-        } else {
-          resolve({
-            connected: response.connected || [],
-            batteryLevels: response.batteryLevels || {},
-            rssiLevels: response.rssiLevels || {},
-            dieTypes: response.dieTypes || {},
-          });
-        }
+    sendMessage({ action: 'getConnectedDice' }, (response: MessageResponse | undefined) => {
+      if (chrome.runtime.lastError || !response) {
+        resolve({
+          connected: [],
+          batteryLevels: {},
+          rssiLevels: {},
+          dieTypes: {},
+        });
+      } else {
+        resolve({
+          connected: response.connected || [],
+          batteryLevels: response.batteryLevels || {},
+          rssiLevels: response.rssiLevels || {},
+          dieTypes: response.dieTypes || {},
+        });
       }
-    );
+    });
   });
 
   section.style.display = 'flex';
@@ -478,14 +434,10 @@ async function renderKnownDice(): Promise<void> {
     const dieType = diceStatus.dieTypes[die.name] || die.dieType || null;
 
     const li = document.createElement('li');
-    li.className = isConnected
-      ? 'known-dice-item connected'
-      : 'known-dice-item';
+    li.className = isConnected ? 'known-dice-item connected' : 'known-dice-item';
 
     const dieIcon = document.createElement('span');
-    dieIcon.className = isConnected
-      ? 'known-dice-icon connected'
-      : 'known-dice-icon';
+    dieIcon.className = isConnected ? 'known-dice-icon connected' : 'known-dice-icon';
     dieIcon.appendChild(createDieIcon(dieType));
     dieIcon.title = isConnected ? 'Connected' : 'Disconnected';
 
@@ -540,8 +492,7 @@ async function renderKnownDice(): Promise<void> {
       const reconnectBtn = document.createElement('button');
       reconnectBtn.className = 'known-dice-btn reconnect';
       reconnectBtn.textContent = 'Reconnect';
-      reconnectBtn.onclick = (): void =>
-        sendMessage({ action: 'reconnect', name: die.name });
+      reconnectBtn.onclick = (): void => sendMessage({ action: 'reconnect', name: die.name });
 
       const forgetBtn = document.createElement('button');
       forgetBtn.className = 'known-dice-btn forget';
@@ -658,27 +609,18 @@ function renderActiveBanner(active: string | null): void {
 
 // Fetch the current popout rows from the active Roll20 tab, then run `next`.
 function withCurrentRows(next: (rows: RowData) => void): void {
-  sendMessage(
-    { action: 'getCurrentRows' },
-    (response: MessageResponse | undefined) => {
-      if (
-        chrome.runtime.lastError ||
-        !response ||
-        !Array.isArray((response as unknown as RowData).rows)
-      ) {
-        showText('Open Roll20 to read the current popout.');
-        return;
-      }
-      next(response as unknown as RowData);
+  sendMessage({ action: 'getCurrentRows' }, (response: MessageResponse | undefined) => {
+    if (chrome.runtime.lastError || !response || !Array.isArray((response as unknown as RowData).rows)) {
+      showText('Open Roll20 to read the current popout.');
+      return;
     }
-  );
+    next(response as unknown as RowData);
+  });
 }
 
 // Save the current popout's rows as a named profile (confirm before overwrite).
 function saveCurrentProfile(): void {
-  const input = document.getElementById(
-    'profileName'
-  ) as HTMLInputElement | null;
+  const input = document.getElementById('profileName') as HTMLInputElement | null;
   const name = input ? input.value.trim() : '';
   if (!name) {
     showText('Enter a profile name to save.');
@@ -686,10 +628,7 @@ function saveCurrentProfile(): void {
   }
 
   getProfiles().then((profiles: ProfileMap) => {
-    if (
-      name in profiles &&
-      !window.confirm(`Profile "${name}" already exists. Overwrite it?`)
-    ) {
+    if (name in profiles && !window.confirm(`Profile "${name}" already exists. Overwrite it?`)) {
       return;
     }
     withCurrentRows((rows: RowData) => {
@@ -734,19 +673,16 @@ function loadProfile(name: string): void {
       renderProfiles();
       return;
     }
-    sendMessage(
-      { action: 'applyProfile', profile },
-      (resp: MessageResponse | undefined) => {
-        if (chrome.runtime.lastError || !resp || !resp.success) {
-          showText('Open Roll20 to load a profile.');
-          return;
-        }
-        setActiveProfile(name).then(() => {
-          showText(`Loaded profile "${name}".`);
-          renderProfiles();
-        });
+    sendMessage({ action: 'applyProfile', profile }, (resp: MessageResponse | undefined) => {
+      if (chrome.runtime.lastError || !resp || !resp.success) {
+        showText('Open Roll20 to load a profile.');
+        return;
       }
-    );
+      setActiveProfile(name).then(() => {
+        showText(`Loaded profile "${name}".`);
+        renderProfiles();
+      });
+    });
   });
 }
 
@@ -865,27 +801,22 @@ chrome.runtime.onMessage.addListener(
 );
 
 // Initialize popup - content scripts are automatically injected by manifest
-chrome.tabs.query(
-  { active: true, currentWindow: true },
-  (tabs: chrome.tabs.Tab[]) => {
-    if (tabs[0]?.id) {
-      // Request initial status from the content script
-      sendMessage({ action: 'getStatus' });
+chrome.tabs.query({ active: true, currentWindow: true }, (tabs: chrome.tabs.Tab[]) => {
+  if (tabs[0]?.id) {
+    // Request initial status from the content script
+    sendMessage({ action: 'getStatus' });
 
-      // Poll status every 5 seconds while popup is open to catch silent state changes
-      setInterval(() => {
-        sendMessage({ action: 'getStatus' });
-        renderKnownDice();
-      }, 5000);
-    }
+    // Poll status every 5 seconds while popup is open to catch silent state changes
+    setInterval(() => {
+      sendMessage({ action: 'getStatus' });
+      renderKnownDice();
+    }, 5000);
   }
-);
+});
 
 // Initialize theme detection when popup loads
 document.addEventListener('DOMContentLoaded', () => {
-  const iconElement = document.querySelector(
-    '.popup-icon'
-  ) as HTMLImageElement | null;
+  const iconElement = document.querySelector('.popup-icon') as HTMLImageElement | null;
   if (iconElement && typeof chrome !== 'undefined' && chrome.runtime) {
     iconElement.src = chrome.runtime.getURL('assets/images/logo-128.png');
   }
@@ -900,17 +831,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Saved rolls panel toggle
-  const toggleSavedRolls = document.getElementById(
-    'toggleSavedRolls'
-  ) as HTMLInputElement | null;
+  const toggleSavedRolls = document.getElementById('toggleSavedRolls') as HTMLInputElement | null;
   if (toggleSavedRolls) {
     // Load saved state
-    chrome.storage.local.get(
-      'pixels_saved_rolls_visible',
-      (result: Record<string, unknown>) => {
-        toggleSavedRolls.checked = result.pixels_saved_rolls_visible !== false;
-      }
-    );
+    chrome.storage.local.get('pixels_saved_rolls_visible', (result: Record<string, unknown>) => {
+      toggleSavedRolls.checked = result.pixels_saved_rolls_visible !== false;
+    });
 
     toggleSavedRolls.addEventListener('change', () => {
       const visible = toggleSavedRolls.checked;
@@ -922,18 +848,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Unprompted rolls toggle (independent of saved rolls visibility)
-  const allowUnpromptedCb = document.getElementById(
-    'allowUnprompted'
-  ) as HTMLInputElement | null;
-  const rollWindowContainer = document.getElementById(
-    'rollWindowContainer'
-  ) as HTMLElement | null;
-  const rollWindowSlider = document.getElementById(
-    'rollWindowSlider'
-  ) as HTMLInputElement | null;
-  const rollWindowValue = document.getElementById(
-    'rollWindowValue'
-  ) as HTMLElement | null;
+  const allowUnpromptedCb = document.getElementById('allowUnprompted') as HTMLInputElement | null;
+  const rollWindowContainer = document.getElementById('rollWindowContainer') as HTMLElement | null;
+  const rollWindowSlider = document.getElementById('rollWindowSlider') as HTMLInputElement | null;
+  const rollWindowValue = document.getElementById('rollWindowValue') as HTMLElement | null;
 
   // Helper to show/hide the roll window slider based on unprompted state
   function updateRollWindowVisibility(allowed: boolean): void {
@@ -948,19 +866,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Roll window slider setup
   if (rollWindowSlider && rollWindowValue) {
-    chrome.storage.local.get(
-      'pixels_roll_window_seconds',
-      (result: Record<string, unknown>) => {
-        const saved = result.pixels_roll_window_seconds;
-        if (typeof saved === 'number' && saved >= 1 && saved <= 10) {
-          rollWindowSlider.value = String(saved);
-          rollWindowValue.textContent = String(saved);
-        }
+    chrome.storage.local.get('pixels_roll_window_seconds', (result: Record<string, unknown>) => {
+      const saved = result.pixels_roll_window_seconds;
+      if (typeof saved === 'number' && saved >= 1 && saved <= 10) {
+        rollWindowSlider.value = String(saved);
+        rollWindowValue.textContent = String(saved);
       }
-    );
+    });
 
     rollWindowSlider.addEventListener('input', () => {
-      const seconds = parseInt(rollWindowSlider.value, 10);
+      const seconds = Number.parseInt(rollWindowSlider.value, 10);
       rollWindowValue.textContent = String(seconds);
       chrome.storage.local.set({ pixels_roll_window_seconds: seconds });
       sendMessage({ action: 'setRollWindow', value: seconds });
@@ -969,15 +884,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (allowUnpromptedCb) {
     // Load saved state
-    chrome.storage.local.get(
-      'pixels_allow_unprompted',
-      (result: Record<string, unknown>) => {
-        const allowed = result.pixels_allow_unprompted !== false; // default true
-        allowUnpromptedCb.checked = allowed;
-        sendMessage({ action: 'setAllowUnprompted', value: allowed });
-        updateRollWindowVisibility(allowed);
-      }
-    );
+    chrome.storage.local.get('pixels_allow_unprompted', (result: Record<string, unknown>) => {
+      const allowed = result.pixels_allow_unprompted !== false; // default true
+      allowUnpromptedCb.checked = allowed;
+      sendMessage({ action: 'setAllowUnprompted', value: allowed });
+      updateRollWindowVisibility(allowed);
+    });
 
     allowUnpromptedCb.addEventListener('change', () => {
       const allowed = allowUnpromptedCb.checked;
@@ -988,18 +900,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Dice substitution toggle
-  const diceSubCb = document.getElementById(
-    'allowDiceSubstitution'
-  ) as HTMLInputElement | null;
+  const diceSubCb = document.getElementById('allowDiceSubstitution') as HTMLInputElement | null;
   if (diceSubCb) {
-    chrome.storage.local.get(
-      'pixels_allow_dice_substitution',
-      (result: Record<string, unknown>) => {
-        const enabled = result.pixels_allow_dice_substitution === true;
-        diceSubCb.checked = enabled;
-        sendMessage({ action: 'setAllowDiceSubstitution', value: enabled });
-      }
-    );
+    chrome.storage.local.get('pixels_allow_dice_substitution', (result: Record<string, unknown>) => {
+      const enabled = result.pixels_allow_dice_substitution === true;
+      diceSubCb.checked = enabled;
+      sendMessage({ action: 'setAllowDiceSubstitution', value: enabled });
+    });
 
     diceSubCb.addEventListener('change', () => {
       const enabled = diceSubCb.checked;
@@ -1030,9 +937,7 @@ document.addEventListener('DOMContentLoaded', () => {
     exportBtn.onclick = exportProfilesToFile;
   }
   const importBtn = document.getElementById('importProfiles');
-  const importFile = document.getElementById(
-    'importFile'
-  ) as HTMLInputElement | null;
+  const importFile = document.getElementById('importFile') as HTMLInputElement | null;
   if (importBtn && importFile) {
     importBtn.onclick = (): void => {
       importFile.click();

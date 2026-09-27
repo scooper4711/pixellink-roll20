@@ -19,7 +19,7 @@ let rollWindowMs = ROLL_WINDOW_DEFAULT_MS;
 try {
   const saved = localStorage.getItem('pixels_roll_window_seconds');
   if (saved) {
-    const parsed = parseInt(saved, 10);
+    const parsed = Number.parseInt(saved, 10);
     if (parsed >= 1 && parsed <= 10) {
       rollWindowMs = parsed * 1000;
     }
@@ -45,7 +45,7 @@ function getSendTextToExtension(): (txt: string) => void {
 function parseDieType(dieName: string, faceValue: number): number {
   const match = dieName.match(/d(\d+)/i);
   if (match) {
-    return parseInt(match[1], 10);
+    return Number.parseInt(match[1], 10);
   }
   return inferDieSize(faceValue);
 }
@@ -121,10 +121,7 @@ function postGroupedRoll(rolls: RollData[]): void {
   const otherRolls = rolls.filter(r => r.dieType !== 100 && r.dieType !== 10);
 
   if (percentileRolls.length === 1 && d10Rolls.length === 1) {
-    const percentileResult = computePercentileValue(
-      percentileRolls[0].faceValue,
-      d10Rolls[0].faceValue
-    );
+    const percentileResult = computePercentileValue(percentileRolls[0].faceValue, d10Rolls[0].faceValue);
     // Combine into a single virtual "d%" roll
     const combinedRolls: RollData[] = [
       ...otherRolls,
@@ -152,10 +149,7 @@ function postGroupedRoll(rolls: RollData[]): void {
 /**
  * Compute percentile value from d% and d10 face values.
  */
-function computePercentileValue(
-  percentileFace: number,
-  d10Face: number
-): number {
+function computePercentileValue(percentileFace: number, d10Face: number): number {
   const d10AsZero = d10Face === 10 ? 0 : d10Face;
   if (percentileFace === 100 && d10AsZero === 0) {
     return 100;
@@ -177,9 +171,7 @@ function postGroupedRollFromList(rolls: RollData[]): void {
 
   // Sort rolls by die type to match the formula ordering
   const sortedRolls = [...rolls].sort((a, b) => a.dieType - b.dieType);
-  const individualValues = sortedRolls
-    .map(r => `<span title="${r.dieName}">${r.faceValue}</span>`)
-    .join(' + ');
+  const individualValues = sortedRolls.map(r => `<span title="${r.dieName}">${r.faceValue}</span>`).join(' + ');
 
   const diceExpr = sortedRolls.map(r => r.faceValue).join('+');
   const message =
@@ -234,14 +226,9 @@ function buildDiceFormulaParts(rollsByType: Record<number, number[]>): string {
 /**
  * Build a single-die chat message (no modifier).
  */
-function buildSingleSimpleFormula(
-  faceValue: number,
-  dieType: number,
-  dieName: string
-): string {
+function buildSingleSimpleFormula(faceValue: number, dieType: number, dieName: string): string {
   const diceWithHover = `<span title="${dieName}">${faceValue}</span>`;
-  const dieLabel =
-    dieType === 101 ? 'd%' : dieType === 100 ? 'd00' : `d${dieType}`;
+  const dieLabel = dieType === 101 ? 'd%' : dieType === 100 ? 'd00' : `d${dieType}`;
   return (
     `&{template:default} {{name=Pixels Dice}}` +
     ` {{Rolling=1${dieLabel}}}` +

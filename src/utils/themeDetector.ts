@@ -13,9 +13,9 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   const rgbMatch = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
   if (rgbMatch) {
     return {
-      r: parseInt(rgbMatch[1]),
-      g: parseInt(rgbMatch[2]),
-      b: parseInt(rgbMatch[3]),
+      r: Number.parseInt(rgbMatch[1]),
+      g: Number.parseInt(rgbMatch[2]),
+      b: Number.parseInt(rgbMatch[3]),
     };
   }
 
@@ -23,9 +23,9 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   const rgbaMatch = colorStr.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/);
   if (rgbaMatch) {
     return {
-      r: parseInt(rgbaMatch[1]),
-      g: parseInt(rgbaMatch[2]),
-      b: parseInt(rgbaMatch[3]),
+      r: Number.parseInt(rgbaMatch[1]),
+      g: Number.parseInt(rgbaMatch[2]),
+      b: Number.parseInt(rgbaMatch[3]),
     };
   }
 
@@ -33,9 +33,9 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   const hexMatch = colorStr.match(/^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
   if (hexMatch) {
     return {
-      r: parseInt(hexMatch[1], 16),
-      g: parseInt(hexMatch[2], 16),
-      b: parseInt(hexMatch[3], 16),
+      r: Number.parseInt(hexMatch[1], 16),
+      g: Number.parseInt(hexMatch[2], 16),
+      b: Number.parseInt(hexMatch[3], 16),
     };
   }
 
@@ -51,13 +51,9 @@ export const detectTheme = (): string => {
       console.log(`Theme detected from Roll20 localStorage: ${roll20Theme}`);
       return roll20Theme;
     } else if (roll20Theme) {
-      console.log(
-        `Unexpected Roll20 theme value: ${roll20Theme}, falling back to other detection`
-      );
+      console.log(`Unexpected Roll20 theme value: ${roll20Theme}, falling back to other detection`);
     } else {
-      console.log(
-        'No colorTheme found in localStorage, falling back to other detection'
-      );
+      console.log('No colorTheme found in localStorage, falling back to other detection');
     }
   } catch (error) {
     console.warn('Could not access Roll20 localStorage colorTheme:', error);
@@ -67,16 +63,10 @@ export const detectTheme = (): string => {
   const body = document.body;
   const html = document.documentElement;
 
-  if (
-    body.classList.contains('darkmode') ||
-    html.classList.contains('darkmode')
-  ) {
+  if (body.classList.contains('darkmode') || html.classList.contains('darkmode')) {
     return 'dark';
   }
-  if (
-    body.classList.contains('lightmode') ||
-    html.classList.contains('lightmode')
-  ) {
+  if (body.classList.contains('lightmode') || html.classList.contains('lightmode')) {
     return 'light';
   }
 
@@ -162,9 +152,7 @@ export const getThemeColors = (): ThemeColors => {
 type ThemeChangeCallback = (theme: string, colors: ThemeColors) => void;
 
 // Monitor theme changes
-export const onThemeChange = (
-  callback: ThemeChangeCallback
-): MutationObserver => {
+export const onThemeChange = (callback: ThemeChangeCallback): MutationObserver => {
   let currentTheme = detectTheme();
 
   // Monitor localStorage changes for Roll20's colorTheme
@@ -182,10 +170,7 @@ export const onThemeChange = (
 
   // Listen for storage events (changes from other tabs/windows)
   window.addEventListener('storage', (e: StorageEvent) => {
-    if (
-      e.key === 'colorTheme' &&
-      (e.newValue === 'dark' || e.newValue === 'light')
-    ) {
+    if (e.key === 'colorTheme' && (e.newValue === 'dark' || e.newValue === 'light')) {
       const newTheme = e.newValue;
       if (newTheme !== currentTheme) {
         currentTheme = newTheme;

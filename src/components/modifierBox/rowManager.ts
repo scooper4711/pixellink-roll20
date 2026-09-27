@@ -31,11 +31,8 @@ function migrateRowData(stored: RowData | null): RowData | null {
     if (typeof row.formula === 'string') {
       return { name: row.name || 'Roll', formula: row.formula };
     }
-    const numericValue = parseInt(row.value || '0') || 0;
-    const formula =
-      numericValue === 0
-        ? '1d20'
-        : `1d20${numericValue >= 0 ? '+' : ''}${numericValue}`;
+    const numericValue = Number.parseInt(row.value || '0') || 0;
+    const formula = numericValue === 0 ? '1d20' : `1d20${numericValue >= 0 ? '+' : ''}${numericValue}`;
     return { name: row.name || 'Roll', formula };
   });
 
@@ -54,9 +51,7 @@ function executeFormula(formula: string, title?: string): void {
   if (command && command.interceptFormula) {
     command.interceptFormula(formula.trim(), title);
   } else {
-    console.error(
-      'PixelsCommand.interceptFormula not available. Is the content script loaded?'
-    );
+    console.error('PixelsCommand.interceptFormula not available. Is the content script loaded?');
   }
 }
 
@@ -90,9 +85,7 @@ function setupRowLogic(modifierBox: HTMLElement): void {
   }
 
   // Add event listener for the add button (only if not already added)
-  const addButton = modifierBox.querySelector(
-    '.add-modifier-btn'
-  ) as HTMLButtonElement | null;
+  const addButton = modifierBox.querySelector('.add-modifier-btn') as HTMLButtonElement | null;
   if (addButton && !addButton.hasAttribute('data-listener-added')) {
     addButton.addEventListener('click', () => {
       addFormulaRow(modifierBox);
@@ -138,19 +131,14 @@ function addFormulaRow(modifierBox: HTMLElement): void {
   saveRows(modifierBox);
 
   // Move focus to the new row's name field, selecting its text for quick edit
-  const newNameInput = newRow.querySelector(
-    '.modifier-name'
-  ) as HTMLInputElement | null;
+  const newNameInput = newRow.querySelector('.modifier-name') as HTMLInputElement | null;
   if (newNameInput) {
     newNameInput.focus();
     newNameInput.select();
   }
 
   // Force theme updates on the new elements
-  if (
-    window.ModifierBoxThemeManager &&
-    window.ModifierBoxThemeManager.forceElementUpdates
-  ) {
+  if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.forceElementUpdates) {
     window.ModifierBoxThemeManager.forceElementUpdates(modifierBox);
   } else if (forceElementUpdates) {
     forceElementUpdates(modifierBox);
@@ -173,12 +161,8 @@ function removeRow(rowElement: HTMLElement, modifierBox: HTMLElement): void {
 
   // If this is the only row left, reset it to default values instead of removing
   if (totalRows === 1) {
-    const nameInput = rowElement.querySelector(
-      '.modifier-name'
-    ) as HTMLInputElement | null;
-    const formulaInput = rowElement.querySelector(
-      '.formula-input'
-    ) as HTMLInputElement | null;
+    const nameInput = rowElement.querySelector('.modifier-name') as HTMLInputElement | null;
+    const formulaInput = rowElement.querySelector('.formula-input') as HTMLInputElement | null;
 
     if (nameInput) nameInput.value = 'Roll';
     if (formulaInput) formulaInput.value = '1d20';
@@ -202,12 +186,8 @@ function removeRow(rowElement: HTMLElement, modifierBox: HTMLElement): void {
 function reindexRows(modifierBox: HTMLElement): void {
   const rows = modifierBox.querySelectorAll('.modifier-row');
   rows.forEach((row, index) => {
-    const nameInput = row.querySelector(
-      '.modifier-name'
-    ) as HTMLInputElement | null;
-    const formulaInput = row.querySelector(
-      '.formula-input'
-    ) as HTMLInputElement | null;
+    const nameInput = row.querySelector('.modifier-name') as HTMLInputElement | null;
+    const formulaInput = row.querySelector('.formula-input') as HTMLInputElement | null;
 
     if (nameInput) {
       nameInput.setAttribute('data-index', index.toString());
@@ -227,18 +207,10 @@ function updateEventListeners(modifierBox: HTMLElement): void {
   const rows = modifierBox.querySelectorAll('.modifier-row');
 
   rows.forEach(row => {
-    const nameInput = row.querySelector(
-      '.modifier-name'
-    ) as HTMLInputElement | null;
-    const formulaInput = row.querySelector(
-      '.formula-input'
-    ) as HTMLInputElement | null;
-    const rollButton = row.querySelector(
-      '.roll-formula-btn'
-    ) as HTMLButtonElement | null;
-    const removeButton = row.querySelector(
-      '.remove-row-btn'
-    ) as HTMLButtonElement | null;
+    const nameInput = row.querySelector('.modifier-name') as HTMLInputElement | null;
+    const formulaInput = row.querySelector('.formula-input') as HTMLInputElement | null;
+    const rollButton = row.querySelector('.roll-formula-btn') as HTMLButtonElement | null;
+    const removeButton = row.querySelector('.remove-row-btn') as HTMLButtonElement | null;
 
     // Save on input changes
     if (nameInput) {
@@ -264,9 +236,7 @@ function updateEventListeners(modifierBox: HTMLElement): void {
     // Roll button executes the formula
     if (rollButton) {
       rollButton.onclick = function (): void {
-        const formula = row.querySelector(
-          '.formula-input'
-        ) as HTMLInputElement | null;
+        const formula = row.querySelector('.formula-input') as HTMLInputElement | null;
         if (formula && formula.value.trim()) {
           const name = nameInput?.value || undefined;
           executeFormula(formula.value, name);
@@ -274,10 +244,7 @@ function updateEventListeners(modifierBox: HTMLElement): void {
           // Visual feedback for empty formula
           if (formulaInput) {
             formulaInput.classList.add('formula-invalid');
-            setTimeout(
-              () => formulaInput.classList.remove('formula-invalid'),
-              600
-            );
+            setTimeout(() => formulaInput.classList.remove('formula-invalid'), 600);
           }
         }
       };
@@ -305,12 +272,8 @@ function serializeRows(modifierBox: HTMLElement | null): RowData {
 
   const rows = modifierBox.querySelectorAll('.modifier-row');
   rows.forEach(row => {
-    const nameInput = row.querySelector(
-      '.modifier-name'
-    ) as HTMLInputElement | null;
-    const formulaInput = row.querySelector(
-      '.formula-input'
-    ) as HTMLInputElement | null;
+    const nameInput = row.querySelector('.modifier-name') as HTMLInputElement | null;
+    const formulaInput = row.querySelector('.formula-input') as HTMLInputElement | null;
 
     if (nameInput && formulaInput) {
       rowsData.push({
@@ -382,10 +345,7 @@ function applyRows(modifierBox: HTMLElement, data: RowData): boolean {
   updateEventListeners(modifierBox);
 
   // Force theme updates on the restored elements
-  if (
-    window.ModifierBoxThemeManager &&
-    window.ModifierBoxThemeManager.forceElementUpdates
-  ) {
+  if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.forceElementUpdates) {
     window.ModifierBoxThemeManager.forceElementUpdates(modifierBox);
   } else if (forceElementUpdates) {
     forceElementUpdates(modifierBox);
