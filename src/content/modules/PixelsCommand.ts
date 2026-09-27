@@ -24,8 +24,8 @@ import {
 import type { PromptData, Slot } from './FormulaEvaluator';
 import type { RollBase } from '@3d-dice/dice-roller-parser';
 
-const COMMAND_PATTERN = /^\/pix(?:el(?:s)?)?(?:\s+(.+))?$/i;
-const GM_COMMAND_PATTERN = /^\/gmpix(?:el(?:s)?)?(?:\s+(.+))?$/i;
+const COMMAND_PATTERN = /^\/pix(?:els|el)?(?:\s+(.+))?$/i;
+const GM_COMMAND_PATTERN = /^\/gmpix(?:els|el)?(?:\s+(.+))?$/i;
 const ROLL_QUERY_PATTERN = /\?\{([^}]+)\}/g;
 
 let pendingPrompt: PromptData | null = null;
@@ -521,7 +521,8 @@ function shakeOverlay(): void {
     return;
   }
   overlayElement.classList.remove('shake');
-  void overlayElement.offsetWidth;
+  // Force reflow so the shake animation restarts
+  overlayElement.getBoundingClientRect();
   overlayElement.classList.add('shake');
 }
 
