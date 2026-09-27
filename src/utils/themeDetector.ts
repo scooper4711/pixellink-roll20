@@ -42,24 +42,23 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   return null;
 };
 
-// Detect current Roll20 theme
-export const detectTheme = (): string => {
-  // First priority: Check Roll20's localStorage colorTheme setting
+// Read Roll20's colorTheme setting from localStorage, if valid.
+function themeFromStorage(): string | null {
+  let roll20Theme: string | null;
   try {
-    const roll20Theme = localStorage.getItem('colorTheme');
-    if (roll20Theme === 'dark' || roll20Theme === 'light') {
-      console.log(`Theme detected from Roll20 localStorage: ${roll20Theme}`);
-      return roll20Theme;
-    } else if (roll20Theme) {
-      console.log(`Unexpected Roll20 theme value: ${roll20Theme}, falling back to other detection`);
-    } else {
-      console.log('No colorTheme found in localStorage, falling back to other detection');
-    }
+    roll20Theme = localStorage.getItem('colorTheme');
   } catch (error) {
     console.warn('Could not access Roll20 localStorage colorTheme:', error);
+    return null;
   }
+  if (roll20Theme === 'dark' || roll20Theme === 'light') {
+    return roll20Theme;
+  }
+  return null;
+}
 
-  // Second priority: Check for Roll20's theme classes on body or html
+// Check Roll20's theme classes and data attributes on body/html.
+function themeFromDomClasses(): string | null {
   const body = document.body;
   const html = document.documentElement;
 
@@ -70,46 +69,36 @@ export const detectTheme = (): string => {
     return 'light';
   }
 
-  // Check for data attributes
-  if ((body as HTMLElement).dataset.theme) {
-    return (body as HTMLElement).dataset.theme!;
-  }
-  if ((html as HTMLElement).dataset.theme) {
-    return (html as HTMLElement).dataset.theme!;
-  }
+  return body.dataset.theme || html.dataset.theme || null;
+}
 
-  // Check CSS custom properties
+function brightnessTheme(rgb: RGBColor): 'dark' | 'light' {
+  const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
+  return brightness < 128 ? 'dark' : 'light';
+}
+
+// Analyze CSS colors (custom properties, then chat container) to infer the theme.
+function themeFromCssColors(): string | null {
   const computedStyle = getComputedStyle(document.documentElement);
   const bgColor =
     computedStyle.getPropertyValue('--background-color') ||
     computedStyle.getPropertyValue('--main-bg') ||
     computedStyle.backgroundColor;
 
-  // Analyze background color to determine theme
-  if (bgColor) {
-    const rgb = parseColor(bgColor);
-    if (rgb) {
-      const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
-      return brightness < 128 ? 'dark' : 'light';
-    }
+  const bgRgb = bgColor ? parseColor(bgColor) : null;
+  if (bgRgb) {
+    return brightnessTheme(bgRgb);
   }
 
-  // Check Roll20's chat container styles as fallback
   const chatContainer = document.querySelector('.textchatcontainer, #textchat');
-  if (chatContainer) {
-    const chatStyle = getComputedStyle(chatContainer);
-    const chatBg = chatStyle.backgroundColor;
-    if (chatBg) {
-      const rgb = parseColor(chatBg);
-      if (rgb) {
-        const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
-        return brightness < 128 ? 'dark' : 'light';
-      }
-    }
-  }
+  const chatBg = chatContainer ? getComputedStyle(chatContainer).backgroundColor : null;
+  const chatRgb = chatBg ? parseColor(chatBg) : null;
+  return chatRgb ? brightnessTheme(chatRgb) : null;
+}
 
-  // Default fallback
-  return 'dark';
+// Detect current Roll20 theme
+export const detectTheme = (): string => {
+  return themeFromStorage() ?? themeFromDomClasses() ?? themeFromCssColors() ?? 'dark';
 };
 
 // Get Roll20 theme colors
