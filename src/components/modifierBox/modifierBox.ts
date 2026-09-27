@@ -32,7 +32,7 @@ const updateSelectedModifierWrapper = (): void => {};
 const updateThemeWrapper = (): void => {
   const modifierBox = getModifierBoxElement();
   if (modifierBox) {
-    if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.updateTheme) {
+    if (window.ModifierBoxThemeManager?.updateTheme) {
       window.ModifierBoxThemeManager.updateTheme(modifierBox);
     } else if (typeof updateThemeFromThemeManager === 'function') {
       updateThemeFromThemeManager(modifierBox);
@@ -44,7 +44,7 @@ const updateThemeWrapper = (): void => {
 const forceThemeRefreshWrapper = (): void => {
   const modifierBox = getModifierBoxElement();
   if (modifierBox) {
-    if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.forceThemeRefresh) {
+    if (window.ModifierBoxThemeManager?.forceThemeRefresh) {
       window.ModifierBoxThemeManager.forceThemeRefresh(modifierBox);
       if (window.ModifierBoxThemeManager.forceElementUpdates) {
         window.ModifierBoxThemeManager.forceElementUpdates(modifierBox);
@@ -90,7 +90,7 @@ async function createModifierBox(): Promise<HTMLElement | null> {
 
     // Legacy migration: old modifier names no longer relevant
     const firstNameInput = existingBox.querySelector('.modifier-name') as HTMLInputElement | null;
-    if (firstNameInput && (firstNameInput.value === 'None' || firstNameInput.value === 'D20')) {
+    if (firstNameInput?.value === 'None' || firstNameInput?.value === 'D20') {
       firstNameInput.value = 'Attack';
       firstNameInput.placeholder = 'Name';
     }
@@ -108,7 +108,7 @@ async function createModifierBox(): Promise<HTMLElement | null> {
 
     let logoUrl = 'assets/images/logo-128.png';
     try {
-      if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+      if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
         logoUrl = chrome.runtime.getURL('assets/images/logo-128.png');
       }
     } catch {
@@ -141,7 +141,7 @@ async function createModifierBox(): Promise<HTMLElement | null> {
 function createModifierBoxFallback(): HTMLElement {
   const newModifierBox = document.createElement('div');
   newModifierBox.id = 'pixels-modifier-box';
-  newModifierBox.setAttribute('data-testid', 'pixels-modifier-box');
+  newModifierBox.dataset.testid = 'pixels-modifier-box';
   newModifierBox.className = 'PIXELS_EXTENSION_BOX_FIND_ME';
   setModifierBoxElement(newModifierBox);
 
@@ -189,7 +189,7 @@ function createModifierBoxFallback(): HTMLElement {
 
 function _setupCleanupHandlers(): void {
   window.addEventListener('beforeunload', () => {
-    if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.stopThemeMonitoring) {
+    if (window.ModifierBoxThemeManager?.stopThemeMonitoring) {
       window.ModifierBoxThemeManager.stopThemeMonitoring();
     } else if (typeof stopThemeMonitoring === 'function') {
       stopThemeMonitoring();
@@ -257,7 +257,7 @@ function clearAllModifiers(): void {
     return;
   }
 
-  if (window.ModifierBoxRowManager && window.ModifierBoxRowManager.resetAllRows) {
+  if (window.ModifierBoxRowManager?.resetAllRows) {
     window.ModifierBoxRowManager.resetAllRows(modifierBox);
   } else {
     console.error('ModifierBoxRowManager.resetAllRows not available');
