@@ -761,30 +761,30 @@ function importProfilesFromFile(file: File | undefined): void {
   if (!file) {
     return;
   }
-  const reader = new FileReader();
-  reader.onload = (): void => {
-    let bundle: ProfileExportBundle;
-    try {
-      bundle = JSON.parse(reader.result as string);
-    } catch {
-      showText('Could not read that file (invalid JSON).');
-      return;
-    }
-    importProfiles(bundle)
-      .then((result: { imported: number; skipped: number; error?: string }) => {
-        if (result.error || result.imported === 0) {
-          showText('No profiles found to import.');
-          return;
-        }
-        showText(`Imported ${result.imported} profile(s).`);
-        renderProfiles();
-      })
-      .catch(() => showText('Failed to import profiles.'));
-  };
-  reader.onerror = (): void => {
-    showText('Could not read that file.');
-  };
-  reader.readAsText(file);
+  file
+    .text()
+    .then((content: string) => {
+      let bundle: ProfileExportBundle;
+      try {
+        bundle = JSON.parse(content);
+      } catch {
+        showText('Could not read that file (invalid JSON).');
+        return;
+      }
+      importProfiles(bundle)
+        .then((result: { imported: number; skipped: number; error?: string }) => {
+          if (result.error || result.imported === 0) {
+            showText('No profiles found to import.');
+            return;
+          }
+          showText(`Imported ${result.imported} profile(s).`);
+          renderProfiles();
+        })
+        .catch(() => showText('Failed to import profiles.'));
+    })
+    .catch(() => {
+      showText('Could not read that file.');
+    });
 }
 
 // Listen on messages from injected JS
