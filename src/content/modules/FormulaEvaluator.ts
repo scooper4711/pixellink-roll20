@@ -123,6 +123,71 @@ function buildSlotsFromAst(ast: RootType, formulaStr: string): PromptData {
 }
 
 /**
+ * Build slots for a single die node and register its group.
+ */
+function addDieGroup(node: AstNode, slots: Slot[], groups: DieGroup[]): void {
+  const dieSize = extractDieSize(node.die as AstNode | undefined);
+  const count = extractCount(node.count as AstNode | undefined);
+
+  if (dieSize === null || count === 0) {
+    return;
+  }
+
+  const mods: DieMod[] = node.mods || [];
+  const groupIndex = groups.length;
+
+  const group: DieGroup = {
+    dieSize,
+    count,
+    mods,
+    targets: node.targets || [],
+    match: node.match || null,
+    slotIndices: [],
+    explosionMod: findExplosionMod(mods),
+    rerollMod: findRerollMod(mods),
+  };
+
+  for (let i = 0; i < count; i++) {
+    const slotIndex = slots.length;
+    slots.push({
+      type: dieSize,
+      value: null,
+      groupIndex,
+      isExplosion: false,
+      isReroll: false,
+    });
+    group.slotIndices.push(slotIndex);
+  }
+
+  groups.push(group);
+}
+
+/**
+ * Walk the head and ops of an expression node.
+ */
+function walkExpressionChildren(node: AstNode, slots: Slot[], groups: DieGroup[]): void {
+  walkForDice(node.head || null, slots, groups);
+  if (node.ops) {
+    for (const op of node.ops) {
+      if (op.tail) {
+        walkForDice(op.tail, slots, groups);
+      }
+    }
+  }
+}
+
+/**
+ * Walk the rolls of a group node.
+ */
+function walkGroupRolls(node: AstNode, slots: Slot[], groups: DieGroup[]): void {
+  if (node.rolls) {
+    for (const roll of node.rolls) {
+      walkForDice(roll, slots, groups);
+    }
+  }
+}
+
+/**
  * Recursively walk the AST to find all die nodes and build slots.
  */
 function walkForDice(node: AstNode | null, slots: Slot[], groups: DieGroup[]): void {
@@ -131,67 +196,19 @@ function walkForDice(node: AstNode | null, slots: Slot[], groups: DieGroup[]): v
   }
 
   if (node.type === 'die') {
-    const dieSize = extractDieSize(node.die as AstNode | undefined);
-    const count = extractCount(node.count as AstNode | undefined);
-
-    if (dieSize === null || count === 0) {
-      return;
-    }
-
-    const mods: DieMod[] = node.mods || [];
-    const targets: ParsedType[] = node.targets || [];
-    const groupIndex = groups.length;
-
-    const explosionMod = findExplosionMod(mods);
-    const rerollMod = findRerollMod(mods);
-
-    const group: DieGroup = {
-      dieSize,
-      count,
-      mods,
-      targets,
-      match: node.match || null,
-      slotIndices: [],
-      explosionMod,
-      rerollMod,
-    };
-
-    for (let i = 0; i < count; i++) {
-      const slotIndex = slots.length;
-      slots.push({
-        type: dieSize,
-        value: null,
-        groupIndex,
-        isExplosion: false,
-        isReroll: false,
-      });
-      group.slotIndices.push(slotIndex);
-    }
-
-    groups.push(group);
+    addDieGroup(node, slots, groups);
     return;
   }
 
   // Expression: head + ops
   if (node.type === 'expression' || node.type === 'diceExpression') {
-    walkForDice(node.head || null, slots, groups);
-    if (node.ops) {
-      for (const op of node.ops) {
-        if (op.tail) {
-          walkForDice(op.tail, slots, groups);
-        }
-      }
-    }
+    walkExpressionChildren(node, slots, groups);
     return;
   }
 
   // Group rolls: {4d6, 3d8}
   if (node.type === 'group') {
-    if (node.rolls) {
-      for (const roll of node.rolls) {
-        walkForDice(roll, slots, groups);
-      }
-    }
+    walkGroupRolls(node, slots, groups);
     return;
   }
 
@@ -375,6 +392,17 @@ function markSlotForReroll(promptData: PromptData, slotIndex: number): void {
 }
 
 /**
+ * Fallback random float in [0, 1) for dice evaluation when no predetermined
+ * physical value is available. Uses the Web Crypto API instead of
+ * Math.random() so results are unpredictable.
+ */
+function cryptoRandom(): number {
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return array[0] / 0x100000000;
+}
+
+/**
  * Evaluate the final result using the library with collected physical dice values.
  */
 function evaluateWithValues(formulaStr: string, collectedValues: EvaluationValue[]): RollBase {
@@ -385,7 +413,7 @@ function evaluateWithValues(formulaStr: string, collectedValues: EvaluationValue
 
   const roller = new DiceRoller(() => {
     if (valueIndex >= values.length) {
-      return Math.random();
+      return cryptoRandom();
     }
     const { face, dieSize } = values[valueIndex++];
     return (face - 1) / (dieSize as number);
