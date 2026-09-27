@@ -43,7 +43,7 @@ function getSendTextToExtension(): (txt: string) => void {
  * Falls back to inferring from the rolled value when name doesn't help.
  */
 function parseDieType(dieName: string, faceValue: number): number {
-  const match = dieName.match(/d(\d+)/i);
+  const match = /d(\d+)/i.exec(dieName);
   if (match) {
     return Number.parseInt(match[1], 10);
   }
@@ -107,7 +107,7 @@ function postSingleRoll(roll: RollData): void {
   const { dieName, dieType, faceValue } = roll;
 
   const formula = buildSingleSimpleFormula(faceValue, dieType, dieName);
-  formula.split('\\n').forEach(s => getPostChatMessage()(s));
+  formula.split(String.raw`\n`).forEach(s => getPostChatMessage()(s));
   getSendTextToExtension()(`${dieName}: face up = ${faceValue}`);
 }
 
@@ -202,25 +202,26 @@ function groupRollsByDieType(rolls: RollData[]): Record<number, number[]> {
 }
 
 /**
+ * Label for a die type, handling the special percentile markers.
+ */
+function dieTypeLabel(type: number): string {
+  if (type === 101) {
+    return 'd%';
+  }
+  if (type === 100) {
+    return 'd00';
+  }
+  return `d${type}`;
+}
+
+/**
  * Build the dice formula string like "2d6" or "2d6 + 1d8".
  */
 function buildDiceFormulaParts(rollsByType: Record<number, number[]>): string {
   const sortedTypes = Object.keys(rollsByType)
     .map(Number)
     .sort((a, b) => a - b);
-  return sortedTypes
-    .map(type => {
-      let label: string;
-      if (type === 101) {
-        label = 'd%';
-      } else if (type === 100) {
-        label = 'd00';
-      } else {
-        label = `d${type}`;
-      }
-      return `${rollsByType[type].length}${label}`;
-    })
-    .join(' + ');
+  return sortedTypes.map(type => `${rollsByType[type].length}${dieTypeLabel(type)}`).join(' + ');
 }
 
 /**
@@ -228,7 +229,7 @@ function buildDiceFormulaParts(rollsByType: Record<number, number[]>): string {
  */
 function buildSingleSimpleFormula(faceValue: number, dieType: number, dieName: string): string {
   const diceWithHover = `<span title="${dieName}">${faceValue}</span>`;
-  const dieLabel = dieType === 101 ? 'd%' : dieType === 100 ? 'd00' : `d${dieType}`;
+  const dieLabel = dieTypeLabel(dieType);
   return (
     `&{template:default} {{name=Pixels Dice}}` +
     ` {{Rolling=1${dieLabel}}}` +

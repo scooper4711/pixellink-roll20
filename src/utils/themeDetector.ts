@@ -10,7 +10,7 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   }
 
   // Handle rgb() format
-  const rgbMatch = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  const rgbMatch = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(colorStr);
   if (rgbMatch) {
     return {
       r: Number.parseInt(rgbMatch[1]),
@@ -20,7 +20,7 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   }
 
   // Handle rgba() format
-  const rgbaMatch = colorStr.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/);
+  const rgbaMatch = /rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/.exec(colorStr);
   if (rgbaMatch) {
     return {
       r: Number.parseInt(rgbaMatch[1]),
@@ -30,7 +30,7 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   }
 
   // Handle hex format
-  const hexMatch = colorStr.match(/^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  const hexMatch = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colorStr);
   if (hexMatch) {
     return {
       r: Number.parseInt(hexMatch[1], 16),

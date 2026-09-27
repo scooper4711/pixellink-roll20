@@ -35,7 +35,7 @@ function wireRollEvents(pixel: Pixel): void {
       });
     } else {
       const message = '&{template:default} {{name=Pixel Roll}}' + ` {{Pixel=${face}}} {{Result=[[${face}]]}}`;
-      message.split('\\n').forEach(s => postChatMessage(s));
+      message.split(String.raw`\n`).forEach(s => postChatMessage(s));
       sendTextToExtension(`${pixel.name}: face up = ${face}`);
     }
   });
