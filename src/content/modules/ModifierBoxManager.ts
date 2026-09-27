@@ -12,7 +12,7 @@ import { isRoll20PopupWindow } from './PopupDetection';
 // Show modifier box (respects popup detection)
 export const showModifierBox = (): void => {
   // Don't show modifier box in Roll20 popup windows
-  if (isRoll20PopupWindow && isRoll20PopupWindow()) {
+  if (isRoll20PopupWindow()) {
     log('Skipping modifier box display - this is a Roll20 popup window');
     return;
   }
@@ -23,7 +23,7 @@ export const showModifierBox = (): void => {
     }
     // Handle async show function
     const result = window.ModifierBox.show();
-    if (result && typeof result.catch === 'function') {
+    if (typeof result?.catch === 'function') {
       result.catch((error: Error) => {
         console.error('Failed to show modifier box:', error);
       });

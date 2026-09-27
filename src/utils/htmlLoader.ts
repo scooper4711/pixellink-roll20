@@ -10,10 +10,7 @@ const loadedTemplates = new Map<string, string>();
 /**
  * Load a single HTML template file
  */
-export const loadTemplate = (
-  templatePath: string,
-  id: string
-): Promise<string> => {
+export const loadTemplate = (templatePath: string, id: string): Promise<string> => {
   return new Promise((resolve, reject) => {
     // Check if already loaded
     if (loadedTemplates.has(id)) {
@@ -25,18 +22,14 @@ export const loadTemplate = (
     // For Chrome extensions, we need to get the full URL
     let fullPath: string;
     try {
-      if (chrome && chrome.runtime && chrome.runtime.getURL) {
+      if (chrome?.runtime?.getURL) {
         fullPath = chrome.runtime.getURL(templatePath);
       } else {
         throw new Error('Chrome runtime not available');
       }
     } catch (error) {
       console.error('Error getting chrome extension URL:', error);
-      reject(
-        new Error(
-          `Chrome extension context not available: ${(error as Error).message}`
-        )
-      );
+      reject(new Error(`Chrome extension context not available: ${(error as Error).message}`));
       return;
     }
 
@@ -70,9 +63,7 @@ interface TemplateDescriptor {
 /**
  * Load multiple HTML templates
  */
-export const loadMultipleTemplates = (
-  templates: TemplateDescriptor[]
-): Promise<string[]> => {
+export const loadMultipleTemplates = (templates: TemplateDescriptor[]): Promise<string[]> => {
   const promises = templates.map(({ path, id }) => loadTemplate(path, id));
   return Promise.all(promises);
 };
