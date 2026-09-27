@@ -13,17 +13,10 @@ import {
 } from './themeManager';
 import { setupDragFunctionality } from './dragHandler';
 import { setupModifierRowLogic, loadModifierRows } from './rowManager';
-import {
-  setupMinimizeControls,
-  setupClearAllControls,
-  restoreMinimizedState,
-} from './uiControls';
+import { setupMinimizeControls, setupClearAllControls, restoreMinimizedState } from './uiControls';
 import { setupPopoutControls } from './popoutManager';
 
-export function setupModifierBoxComponents(
-  modifierBox: HTMLElement,
-  clearAllCallback: () => void
-): boolean {
+export function setupModifierBoxComponents(modifierBox: HTMLElement, clearAllCallback: () => void): boolean {
   if (!modifierBox) {
     console.error('setupModifierBoxComponents: modifierBox is null');
     return false;
@@ -53,10 +46,7 @@ export function setupModifierBoxComponents(
 
 function setupStyles(): void {
   try {
-    if (
-      window.ModifierBoxThemeManager &&
-      window.ModifierBoxThemeManager.addStyles
-    ) {
+    if (window.ModifierBoxThemeManager?.addStyles) {
       window.ModifierBoxThemeManager.addStyles();
     } else if (typeof addStyles === 'function') {
       addStyles();
@@ -70,10 +60,7 @@ function setupStyles(): void {
 
 function setupDragHandling(modifierBox: HTMLElement): void {
   try {
-    if (
-      window.ModifierBoxDragHandler &&
-      window.ModifierBoxDragHandler.setupDragFunctionality
-    ) {
+    if (window.ModifierBoxDragHandler?.setupDragFunctionality) {
       window.ModifierBoxDragHandler.setupDragFunctionality(modifierBox);
     } else if (typeof setupDragFunctionality === 'function') {
       setupDragFunctionality(modifierBox);
@@ -87,10 +74,7 @@ function setupDragHandling(modifierBox: HTMLElement): void {
 
 function setupRowManagement(modifierBox: HTMLElement): void {
   try {
-    if (
-      window.ModifierBoxRowManager &&
-      window.ModifierBoxRowManager.setupModifierRowLogic
-    ) {
+    if (window.ModifierBoxRowManager?.setupModifierRowLogic) {
       window.ModifierBoxRowManager.setupModifierRowLogic(modifierBox);
     } else if (typeof setupModifierRowLogic === 'function') {
       setupModifierRowLogic(modifierBox);
@@ -102,10 +86,7 @@ function setupRowManagement(modifierBox: HTMLElement): void {
   }
 
   try {
-    if (
-      window.ModifierBoxRowManager &&
-      window.ModifierBoxRowManager.loadModifierRows
-    ) {
+    if (window.ModifierBoxRowManager?.loadModifierRows) {
       window.ModifierBoxRowManager.loadModifierRows(modifierBox);
     } else if (typeof loadModifierRows === 'function') {
       loadModifierRows(modifierBox);
@@ -115,10 +96,7 @@ function setupRowManagement(modifierBox: HTMLElement): void {
   }
 }
 
-function setupUIControls(
-  modifierBox: HTMLElement,
-  clearAllCallback: () => void
-): void {
+function setupUIControls(modifierBox: HTMLElement, clearAllCallback: () => void): void {
   setupMinimizeControls(modifierBox);
   setupPopoutControls(modifierBox);
 
@@ -133,23 +111,15 @@ function setupUIControls(
 
 function setupThemeManagement(modifierBox: HTMLElement): void {
   try {
-    if (
-      window.ModifierBoxThemeManager &&
-      window.ModifierBoxThemeManager.startThemeMonitoring
-    ) {
-      window.ModifierBoxThemeManager.startThemeMonitoring(
-        (_newTheme: string, _colors: ThemeColors) => {
-          window.ModifierBoxThemeManager.updateTheme(modifierBox);
-        }
-      );
+    if (window.ModifierBoxThemeManager?.startThemeMonitoring) {
+      window.ModifierBoxThemeManager.startThemeMonitoring((_newTheme: string, _colors: ThemeColors) => {
+        window.ModifierBoxThemeManager.updateTheme(modifierBox);
+      });
     } else if (typeof startThemeMonitoring === 'function') {
       startThemeMonitoring((_newTheme: string, _colors: ThemeColors) => {
         if (typeof updateThemeFromThemeManager === 'function') {
           updateThemeFromThemeManager(modifierBox);
-        } else if (
-          window.ModifierBoxThemeManager &&
-          window.ModifierBoxThemeManager.updateTheme
-        ) {
+        } else if (window.ModifierBoxThemeManager?.updateTheme) {
           window.ModifierBoxThemeManager.updateTheme(modifierBox);
         }
       });
@@ -159,10 +129,7 @@ function setupThemeManagement(modifierBox: HTMLElement): void {
   }
 
   try {
-    if (
-      window.ModifierBoxThemeManager &&
-      window.ModifierBoxThemeManager.updateTheme
-    ) {
+    if (window.ModifierBoxThemeManager?.updateTheme) {
       window.ModifierBoxThemeManager.updateTheme(modifierBox);
     } else if (typeof updateThemeFromThemeManager === 'function') {
       updateThemeFromThemeManager(modifierBox);
@@ -201,10 +168,7 @@ function setupPositioning(modifierBox: HTMLElement): void {
 
 function setupCleanupHandlers(): void {
   window.addEventListener('beforeunload', () => {
-    if (
-      window.ModifierBoxThemeManager &&
-      window.ModifierBoxThemeManager.stopThemeMonitoring
-    ) {
+    if (window.ModifierBoxThemeManager?.stopThemeMonitoring) {
       window.ModifierBoxThemeManager.stopThemeMonitoring();
     } else if (typeof stopThemeMonitoring === 'function') {
       stopThemeMonitoring();
@@ -214,21 +178,16 @@ function setupCleanupHandlers(): void {
 
 export function checkDependencies(): boolean {
   const hasThemeManager =
-    window.ModifierBoxThemeManager &&
-    typeof window.ModifierBoxThemeManager.addStyles === 'function';
+    window.ModifierBoxThemeManager && typeof window.ModifierBoxThemeManager.addStyles === 'function';
 
   const hasDragHandler =
-    window.ModifierBoxDragHandler &&
-    typeof window.ModifierBoxDragHandler.setupDragFunctionality === 'function';
+    window.ModifierBoxDragHandler && typeof window.ModifierBoxDragHandler.setupDragFunctionality === 'function';
 
   const hasRowManager =
-    window.ModifierBoxRowManager &&
-    typeof window.ModifierBoxRowManager.setupModifierRowLogic === 'function';
+    window.ModifierBoxRowManager && typeof window.ModifierBoxRowManager.setupModifierRowLogic === 'function';
 
   if (!hasThemeManager || !hasDragHandler || !hasRowManager) {
-    console.error(
-      'Required modules not loaded. Make sure all modifier box modules are included.'
-    );
+    console.error('Required modules not loaded. Make sure all modifier box modules are included.');
     return false;
   }
 
