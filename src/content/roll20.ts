@@ -15,13 +15,9 @@ import {
   diceManager,
 } from './modules/PixelsBridge';
 import { setupChatInterception } from './modules/PixelsCommand';
-import {
-  sendTextToExtension,
-  sendStatusToExtension,
-  setupMessageListener,
-} from '../core/extensionMessaging';
+import { sendTextToExtension, sendStatusToExtension, setupMessageListener } from '../core/extensionMessaging';
 
-if (typeof window.roll20PixelsLoaded === 'undefined') {
+if (window.roll20PixelsLoaded === undefined) {
   const _roll20PixelsLoaded = true;
 
   // Global settings
@@ -34,8 +30,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
       window.pixelsAllowUnprompted = result.pixels_allow_unprompted !== false;
     });
     chrome.storage.local.get('pixels_allow_dice_substitution', result => {
-      window.pixelsAllowDiceSubstitution =
-        result.pixels_allow_dice_substitution === true;
+      window.pixelsAllowDiceSubstitution = result.pixels_allow_dice_substitution === true;
     });
   }
 
@@ -57,11 +52,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
 
     setupMessageListener();
 
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.runtime &&
-      chrome.runtime.onMessage
-    ) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
       try {
         chrome.runtime.onMessage.addListener(
           (
@@ -99,10 +90,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
                 if (window.RollBatcher && typeof msg.value === 'number') {
                   window.RollBatcher.setWindowMs((msg.value as number) * 1000);
                   try {
-                    localStorage.setItem(
-                      'pixels_roll_window_seconds',
-                      String(msg.value)
-                    );
+                    localStorage.setItem('pixels_roll_window_seconds', String(msg.value));
                   } catch {
                     // localStorage unavailable
                   }
@@ -118,8 +106,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
                 if (!rowsData || !rowsData.rows || rowsData.rows.length === 0) {
                   try {
                     const stored =
-                      localStorage.getItem('pixels_saved_rolls') ||
-                      localStorage.getItem('pixels_modifier_rows');
+                      localStorage.getItem('pixels_saved_rolls') || localStorage.getItem('pixels_modifier_rows');
                     if (stored) {
                       const parsed = JSON.parse(stored) as RowData;
                       rowsData = {
@@ -145,10 +132,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
                     const box = window.ModifierBox?.getElement?.();
                     const ok =
                       box && window.ModifierBoxRowManager?.applyProfileRows
-                        ? window.ModifierBoxRowManager.applyProfileRows(
-                            box,
-                            msg.profile as RowData
-                          )
+                        ? window.ModifierBoxRowManager.applyProfileRows(box, msg.profile as RowData)
                         : false;
                     sendResponse({ success: Boolean(ok) });
                   } catch (e: unknown) {
@@ -165,13 +149,10 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
                   try {
                     await connectToPixel();
                   } catch (error: unknown) {
-                    const message =
-                      error instanceof Error ? error.message : String(error);
+                    const message = error instanceof Error ? error.message : String(error);
                     log(`Error connecting to Pixel: ${message}`);
                     if (typeof window.sendTextToExtension === 'function') {
-                      window.sendTextToExtension(
-                        `Failed to connect: ${message}`
-                      );
+                      window.sendTextToExtension(`Failed to connect: ${message}`);
                     }
                   }
                 })();
@@ -182,13 +163,10 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
                   try {
                     await connectToPixelByName(msg.name as string);
                   } catch (error: unknown) {
-                    const message =
-                      error instanceof Error ? error.message : String(error);
+                    const message = error instanceof Error ? error.message : String(error);
                     log(`Error reconnecting to ${msg.name}: ${message}`);
                     if (typeof window.sendTextToExtension === 'function') {
-                      window.sendTextToExtension(
-                        `Failed to reconnect to ${msg.name}: ${message}`
-                      );
+                      window.sendTextToExtension(`Failed to reconnect to ${msg.name}: ${message}`);
                     }
                   }
                 })();
@@ -201,11 +179,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
               case 'disconnectByName': {
                 const pixel = findPixelByName(msg.name as string);
                 if (pixel) {
-                  pixel
-                    .disconnect()
-                    .catch((err: Error) =>
-                      log(`Disconnect failed for ${msg.name}: ${err.message}`)
-                    );
+                  pixel.disconnect().catch((err: Error) => log(`Disconnect failed for ${msg.name}: ${err.message}`));
                 }
                 break;
               }
@@ -215,9 +189,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
                 if (pixelToBlink && pixelToBlink.isConnected) {
                   pixelToBlink
                     .blink({ r: 0xcc, g: 0x66, b: 0x00 })
-                    .catch((err: Error) =>
-                      log(`Blink failed for ${msg.name}: ${err.message}`)
-                    );
+                    .catch((err: Error) => log(`Blink failed for ${msg.name}: ${err.message}`));
                 }
                 break;
               }
@@ -227,9 +199,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
                 if (pixelToForget) {
                   diceManager
                     .forget(pixelToForget.systemId)
-                    .catch((err: Error) =>
-                      log(`Could not forget ${msg.name}: ${err.message}`)
-                    );
+                    .catch((err: Error) => log(`Could not forget ${msg.name}: ${err.message}`));
                 }
                 break;
               }
@@ -261,9 +231,7 @@ if (typeof window.roll20PixelsLoaded === 'undefined') {
               }
 
               case 'getTheme': {
-                const theme = window.ThemeDetector
-                  ? window.ThemeDetector.detectTheme()
-                  : 'dark';
+                const theme = window.ThemeDetector ? window.ThemeDetector.detectTheme() : 'dark';
                 sendResponse({ theme: theme });
                 return true;
               }

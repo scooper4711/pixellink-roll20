@@ -11,14 +11,10 @@ import { log, getArrayFirstElement } from './Utils';
 // Post message to Roll20 chat
 export const postChatMessage = (message: string): void => {
   const chat = document.getElementById('textchat-input');
-  const txt = getArrayFirstElement(chat?.getElementsByTagName('textarea')) as
-    | HTMLTextAreaElement
-    | undefined;
-  const btn = getArrayFirstElement(chat?.getElementsByTagName('button')) as
-    | HTMLButtonElement
-    | undefined;
+  const txt = getArrayFirstElement(chat?.getElementsByTagName('textarea')) as HTMLTextAreaElement | undefined;
+  const btn = getArrayFirstElement(chat?.getElementsByTagName('button')) as HTMLButtonElement | undefined;
 
-  if (typeof txt === 'undefined' || typeof btn === 'undefined') {
+  if (txt === undefined || btn === undefined) {
     log("Couldn't find Roll20 chat textarea and/or button");
   } else {
     const current_msg = txt.value;

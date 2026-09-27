@@ -293,7 +293,7 @@ export default {
 };
 
 if (typeof window !== 'undefined') {
-  if (window.ModifierBox && typeof window.jest === 'undefined') {
+  if (window.ModifierBox && window.jest === undefined) {
     // ModifierBox module already loaded, skipping re-initialization
   } else {
     window.ModifierBox = {
