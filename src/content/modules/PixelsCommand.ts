@@ -401,6 +401,30 @@ interface DiceRollNode extends RollBase {
   dice?: RollBase[];
 }
 
+function formatRollPart(roll: { roll: number; valid: boolean; explode?: boolean; success?: boolean }): string {
+  if (!roll.valid) {
+    return `*(${roll.roll})*`;
+  }
+  if (roll.explode) {
+    return `**${roll.roll}!**`;
+  }
+  if (roll.success === true) {
+    return `**${roll.roll}**`;
+  }
+  if (roll.success === false) {
+    return `*${roll.roll}*`;
+  }
+  return `${roll.roll}`;
+}
+
+function collectChildDiceParts(diceNode: DiceRollNode, parts: string[]): void {
+  if (diceNode.dice) {
+    for (const die of diceNode.dice) {
+      collectDiceDisplayParts(die, parts);
+    }
+  }
+}
+
 function collectDiceDisplayParts(node: RollBase | null, parts: string[]): void {
   if (!node) {
     return;
@@ -409,37 +433,14 @@ function collectDiceDisplayParts(node: RollBase | null, parts: string[]): void {
   const diceNode = node as DiceRollNode;
 
   if (node.type === 'die' && diceNode.rolls) {
-    for (const roll of diceNode.rolls!) {
-      if (!roll.valid) {
-        parts.push(`*(${roll.roll})*`);
-      } else if (roll.explode) {
-        parts.push(`**${roll.roll}!**`);
-      } else if (roll.success === true) {
-        parts.push(`**${roll.roll}**`);
-      } else if (roll.success === false) {
-        parts.push(`*${roll.roll}*`);
-      } else {
-        parts.push(`${roll.roll}`);
-      }
+    for (const roll of diceNode.rolls) {
+      parts.push(formatRollPart(roll));
     }
     return;
   }
 
-  if (node.type === 'expressionroll' || node.type === 'diceexpressionroll') {
-    if (diceNode.dice) {
-      for (const die of diceNode.dice) {
-        collectDiceDisplayParts(die, parts);
-      }
-    }
-    return;
-  }
-
-  if (node.type === 'grouproll') {
-    if (diceNode.dice) {
-      for (const die of diceNode.dice) {
-        collectDiceDisplayParts(die, parts);
-      }
-    }
+  if (node.type === 'expressionroll' || node.type === 'diceexpressionroll' || node.type === 'grouproll') {
+    collectChildDiceParts(diceNode, parts);
   }
 }
 
