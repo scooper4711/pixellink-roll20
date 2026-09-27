@@ -46,7 +46,7 @@ export function getLogoUrl(): string {
 export function createModifierBoxElement(): HTMLElement {
   const modifierBox = document.createElement('div');
   modifierBox.id = 'pixels-modifier-box';
-  modifierBox.setAttribute('data-testid', 'pixels-modifier-box');
+  modifierBox.dataset.testid = 'pixels-modifier-box';
   modifierBox.className = 'PIXELS_EXTENSION_BOX_FIND_ME';
 
   const logoUrl = getLogoUrl();
