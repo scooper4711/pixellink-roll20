@@ -100,7 +100,9 @@ export const setupMessageListener = (): void => {
 
         switch (msg.action) {
           case 'getStatus':
-            sendStatusToExtension();
+            sendStatusToExtension().catch(error => {
+              console.log('Error sending status to extension:', error);
+            });
             break;
 
           case 'connect':

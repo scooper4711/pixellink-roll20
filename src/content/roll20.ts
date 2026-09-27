@@ -67,7 +67,10 @@ if (window.roll20PixelsLoaded === undefined) {
 
             switch (msg.action) {
               case 'getStatus':
-                window.sendStatusToExtension();
+                window.sendStatusToExtension().catch((error: unknown) => {
+                  const message = error instanceof Error ? error.message : String(error);
+                  log(`Error sending status to extension: ${message}`);
+                });
                 break;
 
               case 'showSavedRolls':
@@ -252,7 +255,10 @@ if (window.roll20PixelsLoaded === undefined) {
   function startExtension(): void {
     initializeExtension();
 
-    window.sendStatusToExtension();
+    window.sendStatusToExtension().catch((error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error);
+      window.log(`Error sending initial status to extension: ${message}`);
+    });
 
     setTimeout(() => {
       try {
