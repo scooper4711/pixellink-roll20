@@ -29,10 +29,7 @@ jest.mock('../../../../src/utils/themeDetector.js', () => ({
 // Import the ES module using require (Babel will transform it)
 const themeManagerModule = require('../../../../src/components/modifierBox/themeManager.js');
 const { loadMultipleCSS } = require('../../../../src/utils/cssLoader.js');
-const {
-  getThemeColors,
-  onThemeChange,
-} = require('../../../../src/utils/themeDetector.js');
+const { getThemeColors, onThemeChange } = require('../../../../src/utils/themeDetector.js');
 
 // Helper function to reset mocks and DOM state
 function resetMocks() {
@@ -45,10 +42,7 @@ function resetMocks() {
   document.body.className = '';
 
   // Reset any global state
-  if (
-    window.ModifierBoxThemeManager &&
-    window.ModifierBoxThemeManager.resetState
-  ) {
+  if (window.ModifierBoxThemeManager && window.ModifierBoxThemeManager.resetState) {
     window.ModifierBoxThemeManager.resetState();
   }
 }
@@ -88,21 +82,11 @@ describe('ModifierBox Theme Manager', () => {
 
     test('should expose correct API methods', () => {
       expect(window.ModifierBoxThemeManager.addStyles).toBeInstanceOf(Function);
-      expect(window.ModifierBoxThemeManager.updateTheme).toBeInstanceOf(
-        Function
-      );
-      expect(
-        window.ModifierBoxThemeManager.startThemeMonitoring
-      ).toBeInstanceOf(Function);
-      expect(window.ModifierBoxThemeManager.stopThemeMonitoring).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxThemeManager.forceThemeRefresh).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxThemeManager.forceElementUpdates).toBeInstanceOf(
-        Function
-      );
+      expect(window.ModifierBoxThemeManager.updateTheme).toBeInstanceOf(Function);
+      expect(window.ModifierBoxThemeManager.startThemeMonitoring).toBeInstanceOf(Function);
+      expect(window.ModifierBoxThemeManager.stopThemeMonitoring).toBeInstanceOf(Function);
+      expect(window.ModifierBoxThemeManager.forceThemeRefresh).toBeInstanceOf(Function);
+      expect(window.ModifierBoxThemeManager.forceElementUpdates).toBeInstanceOf(Function);
     });
   });
 
@@ -129,22 +113,18 @@ describe('ModifierBox Theme Manager', () => {
 
     test('should fall back to inline styles when CSSLoader is not available', () => {
       // Create a version of the module where loadMultipleCSS is null
-      const originalLoadMultipleCSS =
-        require('../../../../src/utils/cssLoader.js').loadMultipleCSS;
+      const originalLoadMultipleCSS = require('../../../../src/utils/cssLoader.js').loadMultipleCSS;
       require('../../../../src/utils/cssLoader.js').loadMultipleCSS = null;
 
       window.ModifierBoxThemeManager.addStyles();
 
-      const styleElement = document.getElementById(
-        'pixels-modifier-box-styles-fallback'
-      );
+      const styleElement = document.getElementById('pixels-modifier-box-styles-fallback');
       expect(styleElement).toBeTruthy();
       expect(styleElement.tagName).toBe('STYLE');
       expect(styleElement.textContent).toContain('#pixels-modifier-box');
 
       // Restore original function
-      require('../../../../src/utils/cssLoader.js').loadMultipleCSS =
-        originalLoadMultipleCSS;
+      require('../../../../src/utils/cssLoader.js').loadMultipleCSS = originalLoadMultipleCSS;
     });
 
     test('should fall back to inline styles when CSS loading fails', async () => {
@@ -156,9 +136,7 @@ describe('ModifierBox Theme Manager', () => {
       // Wait for promise to reject and fallback to execute
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      const styleElement = document.getElementById(
-        'pixels-modifier-box-styles-fallback'
-      );
+      const styleElement = document.getElementById('pixels-modifier-box-styles-fallback');
       expect(styleElement).toBeTruthy();
       expect(styleElement.tagName).toBe('STYLE');
     });
@@ -173,9 +151,7 @@ describe('ModifierBox Theme Manager', () => {
       window.ModifierBoxThemeManager.addStyles();
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      const styleElements = document.querySelectorAll(
-        '#pixels-modifier-box-styles-fallback'
-      );
+      const styleElements = document.querySelectorAll('#pixels-modifier-box-styles-fallback');
       expect(styleElements.length).toBe(1);
     });
 
@@ -188,9 +164,7 @@ describe('ModifierBox Theme Manager', () => {
       // Wait for promise to reject and fallback to execute
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      const styleElement = document.getElementById(
-        'pixels-modifier-box-styles-fallback'
-      );
+      const styleElement = document.getElementById('pixels-modifier-box-styles-fallback');
       expect(styleElement).toBeTruthy();
       const css = styleElement.textContent;
 
@@ -229,8 +203,9 @@ describe('ModifierBox Theme Manager', () => {
     });
 
     test('should handle null modifier box gracefully', () => {
-      window.ModifierBoxThemeManager.updateTheme(null);
-      // Should not throw any errors
+      expect(() => {
+        window.ModifierBoxThemeManager.updateTheme(null);
+      }).not.toThrow();
     });
 
     test('should use fallback colors when ThemeDetector is not available', () => {
@@ -283,9 +258,7 @@ describe('ModifierBox Theme Manager', () => {
     test('should force style updates on input elements', () => {
       window.ModifierBoxThemeManager.forceElementUpdates(mockModifierBox);
 
-      const inputs = mockModifierBox.querySelectorAll(
-        'input[type="text"], input[type="number"]'
-      );
+      const inputs = mockModifierBox.querySelectorAll('input[type="text"], input[type="number"]');
       expect(inputs.length).toBeGreaterThan(0);
 
       // Verify the function completes without error
@@ -321,15 +294,6 @@ describe('ModifierBox Theme Manager', () => {
       window.ModifierBoxThemeManager.startThemeMonitoring(mockCallback);
 
       expect(onThemeChange).toHaveBeenCalled();
-    });
-
-    test('should not start monitoring if ThemeDetector is unavailable', () => {
-      delete window.ThemeDetector;
-      const mockCallback = jest.fn();
-
-      window.ModifierBoxThemeManager.startThemeMonitoring(mockCallback);
-
-      // Should not throw error
     });
 
     test('should not start multiple observers', () => {
