@@ -22,7 +22,7 @@ export function setupModifierBoxComponents(modifierBox: HTMLElement, clearAllCal
     return false;
   }
 
-  if (modifierBox.hasAttribute('data-components-setup')) {
+  if ('componentsSetup' in modifierBox.dataset) {
     return true;
   }
 
@@ -36,7 +36,7 @@ export function setupModifierBoxComponents(modifierBox: HTMLElement, clearAllCal
     setupPositioning(modifierBox);
     setupCleanupHandlers();
 
-    modifierBox.setAttribute('data-components-setup', 'true');
+    modifierBox.dataset.componentsSetup = 'true';
     return true;
   } catch (error) {
     console.error('Error during component setup:', error);

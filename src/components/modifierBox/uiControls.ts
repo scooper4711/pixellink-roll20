@@ -94,8 +94,8 @@ export async function restoreMinimizedState(modifierBox: HTMLElement): Promise<v
 
 function minimizeModifierBox(modifierBox: HTMLElement, minimizeBtn: HTMLButtonElement): void {
   const rect = modifierBox.getBoundingClientRect();
-  modifierBox.setAttribute('data-original-width', String(rect.width));
-  modifierBox.setAttribute('data-original-height', String(rect.height));
+  modifierBox.dataset.originalWidth = String(rect.width);
+  modifierBox.dataset.originalHeight = String(rect.height);
 
   modifierBox.classList.add('minimized');
   modifierBox.style.setProperty('width', '200px', 'important');
@@ -109,8 +109,8 @@ function minimizeModifierBox(modifierBox: HTMLElement, minimizeBtn: HTMLButtonEl
 
 // Restore the modifier box from minimized state
 function restoreModifierBox(modifierBox: HTMLElement, minimizeBtn: HTMLButtonElement): void {
-  const originalWidth = modifierBox.getAttribute('data-original-width');
-  const originalHeight = modifierBox.getAttribute('data-original-height');
+  const originalWidth = modifierBox.dataset.originalWidth;
+  const originalHeight = modifierBox.dataset.originalHeight;
 
   modifierBox.classList.remove('minimized');
 

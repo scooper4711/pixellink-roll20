@@ -87,11 +87,11 @@ function setupRowLogic(modifierBox: HTMLElement): void {
 
   // Add event listener for the add button (only if not already added)
   const addButton = modifierBox.querySelector('.add-modifier-btn') as HTMLButtonElement | null;
-  if (addButton && !addButton.hasAttribute('data-listener-added')) {
+  if (addButton && !addButton.dataset.listenerAdded) {
     addButton.addEventListener('click', () => {
       addFormulaRow(modifierBox);
     });
-    addButton.setAttribute('data-listener-added', 'true');
+    addButton.dataset.listenerAdded = 'true';
   }
 
   // Add event listeners for existing inputs and buttons
@@ -191,10 +191,10 @@ function reindexRows(modifierBox: HTMLElement): void {
     const formulaInput = row.querySelector('.formula-input') as HTMLInputElement | null;
 
     if (nameInput) {
-      nameInput.setAttribute('data-index', index.toString());
+      nameInput.dataset.index = index.toString();
     }
     if (formulaInput) {
-      formulaInput.setAttribute('data-index', index.toString());
+      formulaInput.dataset.index = index.toString();
     }
   });
 }
