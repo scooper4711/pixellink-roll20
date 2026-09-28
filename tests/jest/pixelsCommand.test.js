@@ -257,6 +257,14 @@ describe('PixelsCommand', () => {
       expect(PixelsCommand.isPromptActive()).toBe(true);
     });
 
+    test('should tolerate extra whitespace around the formula', () => {
+      const textarea = addChatInput();
+      textarea.value = '/pixels  2d6+3 ';
+      pressEnter(textarea);
+      expect(PixelsCommand.isPromptActive()).toBe(true);
+      PixelsCommand.cancelPrompt();
+    });
+
     test('should whisper for /gmpixels commands', () => {
       const textarea = addChatInput();
       textarea.value = '/gmpixels 1d20';

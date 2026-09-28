@@ -8,7 +8,7 @@
 'use strict';
 
 import { getFormulaDisplay } from './FormulaEvaluator';
-import type { PromptData } from './FormulaEvaluator';
+import type { PromptData, Slot } from './FormulaEvaluator';
 
 // --- Overlay UI ---
 
@@ -53,41 +53,48 @@ export function updateOverlaySlots(prompt: PromptData): void {
   slotsEl.innerHTML = '';
 
   for (const slot of prompt.slots) {
-    const slotDiv = document.createElement('div');
-    const baseClass = 'pixels-cmd-slot';
-
-    let stateClass: string;
-    if (slot.value !== null) {
-      stateClass = 'filled';
-    } else if (slot.isReroll) {
-      stateClass = 'reroll';
-    } else if (slot.isExplosion) {
-      stateClass = 'explosion';
-    } else {
-      stateClass = 'waiting';
-    }
-
-    slotDiv.className = `${baseClass} ${stateClass}`;
-
-    const typeLabel = slot.type === 'fate' ? 'dF' : `d${slot.type}`;
-    let decorator = '';
-    if (slot.isExplosion) {
-      decorator = '💥';
-    }
-    if (slot.isReroll) {
-      decorator = '🔄';
-    }
-
-    if (slot.value !== null) {
-      slotDiv.innerHTML =
-        `<span class="slot-value">${slot.value}</span>` + `<span class="slot-type">${typeLabel}${decorator}</span>`;
-    } else {
-      slotDiv.innerHTML =
-        `<span class="slot-placeholder">${decorator || '?'}</span>` + `<span class="slot-type">${typeLabel}</span>`;
-    }
-
-    slotsEl.appendChild(slotDiv);
+    slotsEl.appendChild(buildSlotDiv(slot));
   }
+}
+
+function slotStateClass(slot: Slot): string {
+  if (slot.value !== null) {
+    return 'filled';
+  }
+  if (slot.isReroll) {
+    return 'reroll';
+  }
+  if (slot.isExplosion) {
+    return 'explosion';
+  }
+  return 'waiting';
+}
+
+function slotDecorator(slot: Slot): string {
+  if (slot.isExplosion) {
+    return '💥';
+  }
+  if (slot.isReroll) {
+    return '🔄';
+  }
+  return '';
+}
+
+function buildSlotDiv(slot: Slot): HTMLDivElement {
+  const slotDiv = document.createElement('div');
+  slotDiv.className = `pixels-cmd-slot ${slotStateClass(slot)}`;
+
+  const typeLabel = slot.type === 'fate' ? 'dF' : `d${slot.type}`;
+  const decorator = slotDecorator(slot);
+
+  if (slot.value !== null) {
+    slotDiv.innerHTML =
+      `<span class="slot-value">${slot.value}</span>` + `<span class="slot-type">${typeLabel}${decorator}</span>`;
+  } else {
+    slotDiv.innerHTML =
+      `<span class="slot-placeholder">${decorator || '?'}</span>` + `<span class="slot-type">${typeLabel}</span>`;
+  }
+  return slotDiv;
 }
 
 export function shakeOverlay(): void {

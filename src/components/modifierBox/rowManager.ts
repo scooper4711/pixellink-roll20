@@ -62,8 +62,6 @@ window.ModifierBoxRowManager = {
   addModifierRow: addFormulaRow,
   removeModifierRow: removeRow,
   updateEventListeners: updateEventListeners,
-  updateSelectedModifier: function (): void {}, // No-op for backward compatibility
-  clearModifierState: function (): void {}, // No-op for backward compatibility
   reindexRows: reindexRows,
   serializeRows: serializeRows,
   applyRows: applyRows,
@@ -488,10 +486,6 @@ export const setRowCounter = (value: number): void => {
   rowCounter = value;
 };
 
-// No-op stubs for backward compatibility
-export const updateSelectedModifier = function (): void {};
-export const clearModifierState = function (): void {};
-
 // Helper function to reset module state (for testing)
 export const resetState = (): void => {
   rowCounter = 1;
@@ -503,8 +497,6 @@ export default {
   addModifierRow: addFormulaRow,
   removeModifierRow: removeRow,
   updateEventListeners,
-  updateSelectedModifier: function (): void {},
-  clearModifierState: function (): void {},
   reindexRows,
   serializeRows,
   applyRows,
@@ -525,8 +517,6 @@ if (typeof window !== 'undefined') {
     addModifierRow: addFormulaRow,
     removeModifierRow: removeRow,
     updateEventListeners,
-    updateSelectedModifier: function (): void {},
-    clearModifierState: function (): void {},
     reindexRows,
     serializeRows,
     applyRows,

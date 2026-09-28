@@ -134,16 +134,16 @@
   cursor: pointer !important;
   margin-bottom: 8px !important;
   color: #ffffff !important;
-  background-color: #4caf50 !important;
+  background-color: #2e7d32 !important;
   transition: background-color 0.2s ease !important;
 }
 
 #pixels-modifier-box .roll-btn:hover {
-  background-color: #45a049 !important;
+  background-color: #276a29 !important;
 }
 
 #pixels-modifier-box .roll-btn:active {
-  background-color: #3d8b40 !important;
+  background-color: #1f5c22 !important;
 }
 
 /* Modifier Row Styles */
@@ -238,7 +238,7 @@
 #pixels-modifier-box .add-row-btn:hover {
   border-color: #4caf50 !important;
   color: #4caf50 !important;
-  background-color: rgba(76, 175, 80, 0.1) !important;
+  background-color: #1a2e1a !important;
 }
 
 /* Roll Window Slider */
@@ -373,13 +373,13 @@
 
 #pixels-modifier-box .drag-handle:hover {
   color: #cccccc !important;
-  background-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: #3a3a3a !important;
 }
 
 #pixels-modifier-box .drag-handle:active {
   cursor: grabbing !important;
   color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.2) !important;
+  background-color: #4a4a4a !important;
 }
 
 /* Dragging state */

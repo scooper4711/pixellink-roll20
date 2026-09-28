@@ -45,7 +45,6 @@ function setWindowDeps(extraRowManager = {}) {
   window.ModifierBoxDragHandler = { setupDragFunctionality: jest.fn() };
   window.ModifierBoxRowManager = {
     setupModifierRowLogic: jest.fn(),
-    updateSelectedModifier: jest.fn(),
     resetAllRows: jest.fn(),
     ...extraRowManager,
   };

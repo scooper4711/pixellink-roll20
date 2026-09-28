@@ -25,9 +25,6 @@ const _getModifierBoxElementWrapper = (): HTMLElement | null => getModifierBoxEl
 const isModifierBoxVisibleFunc = (): boolean => isModifierBoxVisible();
 const _isModifierBoxInitializedWrapper = (): boolean => isModifierBoxInitialized();
 
-// No-op: modifier selection is removed. Kept for backward compatibility.
-const updateSelectedModifierWrapper = (): void => {};
-
 // Function to update theme using imported function
 const updateThemeWrapper = (): void => {
   const modifierBox = getModifierBoxElement();
@@ -275,7 +272,6 @@ export const show = showModifierBox;
 export const hide = hideModifierBox;
 export const isVisible = isModifierBoxVisibleFunc;
 export const getElement = getModifierBoxElement;
-export const updateSelectedModifier = updateSelectedModifierWrapper;
 export const isInitialized = isModifierBoxInitialized;
 export const updateTheme = updateThemeWrapper;
 export const forceThemeRefresh = forceThemeRefreshWrapper;
@@ -289,7 +285,6 @@ export default {
   hide: hideModifierBox,
   isVisible: isModifierBoxVisibleFunc,
   getElement: getModifierBoxElement,
-  updateSelectedModifier: updateSelectedModifierWrapper,
   isInitialized: isModifierBoxInitialized,
   updateTheme: updateThemeWrapper,
   forceThemeRefresh: forceThemeRefreshWrapper,
@@ -308,7 +303,6 @@ if (typeof window !== 'undefined') {
       hide: hideModifierBox,
       isVisible: isModifierBoxVisibleFunc,
       getElement: getModifierBoxElement,
-      updateSelectedModifier: updateSelectedModifierWrapper,
       isInitialized: isModifierBoxInitialized,
       updateTheme: updateThemeWrapper,
       forceThemeRefresh: forceThemeRefreshWrapper,

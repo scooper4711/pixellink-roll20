@@ -247,6 +247,14 @@ describe('extensionMessaging', () => {
       expect(console.warn).toHaveBeenCalledWith('Error connecting to pixel:', expect.any(Error));
     });
 
+    test('connect logs async rejections instead of leaving them unhandled', async () => {
+      window.connectToPixel = jest.fn(() => Promise.reject(new Error('bt offline')));
+      messaging.setupMessageListener();
+      onMessageListener({ action: 'connect' }, {}, jest.fn());
+      await flush();
+      expect(console.warn).toHaveBeenCalledWith('Error connecting to pixel:', expect.any(Error));
+    });
+
     test('connect is a no-op when window.connectToPixel missing', () => {
       messaging.setupMessageListener();
       expect(() => onMessageListener({ action: 'connect' }, {}, jest.fn())).not.toThrow();

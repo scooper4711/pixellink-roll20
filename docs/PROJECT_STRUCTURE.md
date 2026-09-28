@@ -63,7 +63,6 @@ PixelsRoll20ChromeExtension/
 │       │   └── rowManager.test.js   # Row management tests
 │       ├── roll20-basic.test.js  # Basic Roll20 integration tests
 │       ├── roll20-simple.test.js # Simple Roll20 functionality tests
-│       ├── experimental/         # Experimental test suites
 │       └── README.md            # Testing documentation
 ├── docs/                         # Documentation
 │   ├── DEVELOPER_GUIDE.md       # Developer setup and guidelines
@@ -237,7 +236,6 @@ The Roll20 integration has been refactored into focused, single-responsibility m
   - **campaignIdValidation.test.js**: Campaign ID validation tests
   - **popup.test.js**: Popup functionality tests
   - **coreModules.test.js**: Core module loading and functionality tests
-  - **experimental/**: Experimental test suites (in development)
   - **README.md**: Testing documentation and guidelines
 
 ### Development Configuration
@@ -353,13 +351,6 @@ The project includes robust Jest test coverage with pre-commit validation:
 ✅ tests/jest/campaignIdValidation.test.js              - Campaign ID validation
 ✅ tests/jest/popup.test.js                             - Popup functionality
 ✅ tests/jest/coreModules.test.js                       - Core module loading
-
-🧪 tests/jest/experimental/                             - Development test suites
-   ├── BluetoothConnection.test.js                     - Bluetooth API mocking challenges
-   ├── ExtensionMessaging.test.js                      - Chrome API mocking complexity
-   ├── ChatIntegration.test.js                         - DOM integration scenarios
-   ├── Pixel.test.js                                   - Advanced Pixels dice scenarios
-   └── roll20-*.test.js                                - Complex Roll20 integration tests
 ```
 
 ### Test Commands

@@ -66,9 +66,7 @@
     ],
     "testMatch": [
       "<rootDir>/tests/jest/**/*.test.js",
-      "<rootDir>/tests/jest/**/*.test.ts",
-      "!<rootDir>/tests/jest/experimental/**/*.test.js",
-      "!<rootDir>/tests/jest/experimental/**/*.test.ts"
+      "<rootDir>/tests/jest/**/*.test.ts"
     ],
     "collectCoverageFrom": [
       "src/**/*.ts",
@@ -80,13 +78,11 @@
       "js"
     ],
     "testPathIgnorePatterns": [
-      "/node_modules/",
-      "/tests/jest/experimental/"
+      "/node_modules/"
     ],
     "maxWorkers": 1,
     "testTimeout": 5000,
     "detectOpenHandles": false,
-    "forceExit": true,
     "cache": false,
     "watchman": false,
     "transform": {

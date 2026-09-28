@@ -108,7 +108,12 @@ export const setupMessageListener = (): void => {
           case 'connect':
             try {
               if (window.connectToPixel) {
-                window.connectToPixel();
+                const pending = window.connectToPixel();
+                if (pending && typeof pending.catch === 'function') {
+                  pending.catch((error: Error) => {
+                    console.warn('Error connecting to pixel:', error);
+                  });
+                }
               }
             } catch (error) {
               console.warn('Error connecting to pixel:', error);

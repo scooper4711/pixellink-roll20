@@ -28,37 +28,17 @@ describe('Saved Roll Formula Row Manager', () => {
     });
 
     test('should expose correct API methods', () => {
-      expect(window.ModifierBoxRowManager.setupModifierRowLogic).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxRowManager.addModifierRow).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxRowManager.removeModifierRow).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxRowManager.updateEventListeners).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxRowManager.executeFormula).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxRowManager.getRowCounter).toBeInstanceOf(
-        Function
-      );
-      expect(window.ModifierBoxRowManager.setRowCounter).toBeInstanceOf(
-        Function
-      );
+      expect(window.ModifierBoxRowManager.setupModifierRowLogic).toBeInstanceOf(Function);
+      expect(window.ModifierBoxRowManager.addModifierRow).toBeInstanceOf(Function);
+      expect(window.ModifierBoxRowManager.removeModifierRow).toBeInstanceOf(Function);
+      expect(window.ModifierBoxRowManager.updateEventListeners).toBeInstanceOf(Function);
+      expect(window.ModifierBoxRowManager.executeFormula).toBeInstanceOf(Function);
+      expect(window.ModifierBoxRowManager.getRowCounter).toBeInstanceOf(Function);
+      expect(window.ModifierBoxRowManager.setRowCounter).toBeInstanceOf(Function);
     });
 
     test('should initialize with correct row counter', () => {
       expect(window.ModifierBoxRowManager.getRowCounter()).toBe(1);
-    });
-
-    test('updateSelectedModifier should be a no-op for backward compat', () => {
-      expect(() => {
-        window.ModifierBoxRowManager.updateSelectedModifier(null);
-      }).not.toThrow();
     });
   });
 
@@ -66,9 +46,7 @@ describe('Saved Roll Formula Row Manager', () => {
     test('should handle null modifierBox parameter', () => {
       window.ModifierBoxRowManager.setupModifierRowLogic(null);
 
-      expect(console.error).toHaveBeenCalledWith(
-        'setupRowLogic: modifierBox is required'
-      );
+      expect(console.error).toHaveBeenCalledWith('setupRowLogic: modifierBox is required');
     });
 
     test('should set up add button listener', () => {
@@ -85,18 +63,14 @@ describe('Saved Roll Formula Row Manager', () => {
     test('should handle null modifierBox parameter', () => {
       window.ModifierBoxRowManager.addModifierRow(null);
 
-      expect(console.error).toHaveBeenCalledWith(
-        'addFormulaRow: modifierBox is required'
-      );
+      expect(console.error).toHaveBeenCalledWith('addFormulaRow: modifierBox is required');
     });
 
     test('should handle missing content area', () => {
       const box = document.createElement('div');
       window.ModifierBoxRowManager.addModifierRow(box);
 
-      expect(console.error).toHaveBeenCalledWith(
-        'addFormulaRow: content area not found'
-      );
+      expect(console.error).toHaveBeenCalledWith('addFormulaRow: content area not found');
     });
 
     test('should create row with correct formula structure', () => {
@@ -151,18 +125,14 @@ describe('Saved Roll Formula Row Manager', () => {
       const box = createMockSavedRollsBox();
       window.ModifierBoxRowManager.removeModifierRow(null, box);
 
-      expect(console.error).toHaveBeenCalledWith(
-        'removeRow: rowElement is null or undefined'
-      );
+      expect(console.error).toHaveBeenCalledWith('removeRow: rowElement is null or undefined');
     });
 
     test('should handle null modifierBox parameter', () => {
       const row = document.createElement('div');
       window.ModifierBoxRowManager.removeModifierRow(row, null);
 
-      expect(console.error).toHaveBeenCalledWith(
-        'removeRow: modifierBox is required'
-      );
+      expect(console.error).toHaveBeenCalledWith('removeRow: modifierBox is required');
     });
 
     test('should reset last remaining row instead of removing it', () => {
@@ -339,10 +309,7 @@ describe('Saved Roll Formula Row Manager', () => {
 
       window.ModifierBoxRowManager.executeFormula('2d6+3');
 
-      expect(window.PixelsCommand.interceptFormula).toHaveBeenCalledWith(
-        '2d6+3',
-        undefined
-      );
+      expect(window.PixelsCommand.interceptFormula).toHaveBeenCalledWith('2d6+3', undefined);
     });
 
     test('should not call anything for empty formula', () => {
@@ -359,10 +326,7 @@ describe('Saved Roll Formula Row Manager', () => {
 
       window.ModifierBoxRowManager.executeFormula('  2d6+3  ');
 
-      expect(window.PixelsCommand.interceptFormula).toHaveBeenCalledWith(
-        '2d6+3',
-        undefined
-      );
+      expect(window.PixelsCommand.interceptFormula).toHaveBeenCalledWith('2d6+3', undefined);
     });
   });
 
@@ -383,9 +347,7 @@ describe('Saved Roll Formula Row Manager', () => {
 
     test('should handle null modifierBox', () => {
       window.ModifierBoxRowManager.resetAllRows(null);
-      expect(console.error).toHaveBeenCalledWith(
-        'resetAllRows: modifierBox is required'
-      );
+      expect(console.error).toHaveBeenCalledWith('resetAllRows: modifierBox is required');
     });
   });
 
@@ -402,12 +364,8 @@ describe('Saved Roll Formula Row Manager', () => {
       window.ModifierBoxRowManager.reindexRows(box);
 
       const remaining = box.querySelectorAll('.modifier-row');
-      expect(
-        remaining[0].querySelector('.modifier-name').getAttribute('data-index')
-      ).toBe('0');
-      expect(
-        remaining[1].querySelector('.modifier-name').getAttribute('data-index')
-      ).toBe('1');
+      expect(remaining[0].querySelector('.modifier-name').getAttribute('data-index')).toBe('0');
+      expect(remaining[1].querySelector('.modifier-name').getAttribute('data-index')).toBe('1');
     });
   });
 

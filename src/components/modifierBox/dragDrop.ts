@@ -94,9 +94,7 @@ function startDrag(state: RowDragState): void {
 }
 
 function insertPlaceholderAtEnd(state: RowDragState, rows: NodeListOf<Element>, placeholder: HTMLElement): void {
-  const lastRow = Array.from(rows)
-    .filter(row => row !== state.draggedElement)
-    .pop();
+  const lastRow = Array.from(rows).findLast(row => row !== state.draggedElement);
   if (lastRow) {
     lastRow.parentNode!.insertBefore(placeholder, lastRow.nextSibling);
   } else {

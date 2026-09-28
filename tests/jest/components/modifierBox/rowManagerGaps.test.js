@@ -223,13 +223,6 @@ describe('Row Manager gaps', () => {
     expect(console.error).toHaveBeenCalledWith('resetAllRows: content area not found');
   });
 
-  test('backward-compat no-ops do not throw', () => {
-    expect(() => window.ModifierBoxRowManager.updateSelectedModifier()).not.toThrow();
-    expect(() => window.ModifierBoxRowManager.clearModifierState()).not.toThrow();
-    expect(() => rowManager.updateSelectedModifier()).not.toThrow();
-    expect(() => rowManager.clearModifierState()).not.toThrow();
-  });
-
   test('escapeHtml neutralizes markup in names', () => {
     const box = createBox();
     window.ModifierBoxRowManager.applyRows(box, {

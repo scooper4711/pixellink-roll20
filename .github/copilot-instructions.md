@@ -18,7 +18,6 @@ This is the **Pixels Roll20 Chrome Extension** project - a browser extension tha
 - Organize UI components in `src/content/modifierBox/`
 - Keep common utilities in `src/content/common/`
 - Maintain stable tests in `tests/jest/`
-- Keep experimental/legacy tests in `tests/jest/experimental/`
 
 ## Documentation Requirements
 
@@ -37,7 +36,6 @@ Use descriptive names with dates:
 ## Testing Guidelines
 
 - Maintain 100% pass rate for stable tests (currently 141 tests passing)
-- Keep experimental tests isolated in `tests/jest/experimental/`
 - Update tests when modifying functionality
 - Use descriptive test names and proper mocking
 

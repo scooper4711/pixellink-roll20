@@ -26,8 +26,8 @@ import { containsRollQueries, resolveRollQueries } from './PixelsQueryModal';
 import { hideOverlay, shakeOverlay, showPromptOverlay, updateOverlaySlots } from './PixelsPromptOverlay';
 import type { RollBase } from '@3d-dice/dice-roller-parser';
 
-const COMMAND_PATTERN = /^\/pix(?:els|el)?(?:\s+(.+))?$/i;
-const GM_COMMAND_PATTERN = /^\/gmpix(?:els|el)?(?:\s+(.+))?$/i;
+const COMMAND_PATTERN = /^\/pix(?:els|el)?(?:\s+(\S.*))?$/i;
+const GM_COMMAND_PATTERN = /^\/gmpix(?:els|el)?(?:\s+(\S.*))?$/i;
 
 let pendingPrompt: PromptData | null = null;
 

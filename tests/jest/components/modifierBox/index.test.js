@@ -31,7 +31,6 @@ describe('ModifierBox Main Module', () => {
         hide: modifierBoxModule.hide,
         isVisible: modifierBoxModule.isVisible,
         getElement: modifierBoxModule.getElement,
-        updateSelectedModifier: modifierBoxModule.updateSelectedModifier,
         isInitialized: modifierBoxModule.isInitialized,
         updateTheme: modifierBoxModule.updateTheme,
         forceThemeRefresh: modifierBoxModule.forceThemeRefresh,
@@ -57,7 +56,6 @@ describe('ModifierBox Main Module', () => {
 
     window.ModifierBoxRowManager = {
       setupModifierRowLogic: jest.fn(),
-      updateSelectedModifier: jest.fn(),
     };
 
     // Mock HTMLLoader for module loading
@@ -112,9 +110,6 @@ describe('ModifierBox Main Module', () => {
       expect(window.ModifierBox.hide).toBeInstanceOf(Function);
       expect(window.ModifierBox.isVisible).toBeInstanceOf(Function);
       expect(window.ModifierBox.getElement).toBeInstanceOf(Function);
-      expect(window.ModifierBox.updateSelectedModifier).toBeInstanceOf(
-        Function
-      );
       expect(window.ModifierBox.isInitialized).toBeInstanceOf(Function);
       expect(window.ModifierBox.updateTheme).toBeInstanceOf(Function);
       expect(window.ModifierBox.forceThemeRefresh).toBeInstanceOf(Function);
@@ -238,7 +233,6 @@ describe('ModifierBox Main Module', () => {
           hide: modifierBoxModule.hide,
           isVisible: modifierBoxModule.isVisible,
           getElement: modifierBoxModule.getElement,
-          updateSelectedModifier: modifierBoxModule.updateSelectedModifier,
           isInitialized: modifierBoxModule.isInitialized,
           updateTheme: modifierBoxModule.updateTheme,
           forceThemeRefresh: modifierBoxModule.forceThemeRefresh,
@@ -264,21 +258,14 @@ describe('ModifierBox Main Module', () => {
 
       window.ModifierBoxRowManager = {
         setupModifierRowLogic: jest.fn(),
-        updateSelectedModifier: jest.fn(),
       };
 
       await window.ModifierBox.create();
 
       expect(window.ModifierBoxThemeManager.addStyles).toHaveBeenCalled();
-      expect(
-        window.ModifierBoxDragHandler.setupDragFunctionality
-      ).toHaveBeenCalled();
-      expect(
-        window.ModifierBoxRowManager.setupModifierRowLogic
-      ).toHaveBeenCalled();
-      expect(
-        window.ModifierBoxThemeManager.startThemeMonitoring
-      ).toHaveBeenCalled();
+      expect(window.ModifierBoxDragHandler.setupDragFunctionality).toHaveBeenCalled();
+      expect(window.ModifierBoxRowManager.setupModifierRowLogic).toHaveBeenCalled();
+      expect(window.ModifierBoxThemeManager.startThemeMonitoring).toHaveBeenCalled();
     });
 
     test('should handle missing dependencies gracefully', async () => {
@@ -308,9 +295,7 @@ describe('ModifierBox Main Module', () => {
 
       expect(window.ModifierBox.isVisible()).toBe(true);
       expect(window.ModifierBox.getElement()).toBeInstanceOf(HTMLElement);
-      expect(document.body.contains(window.ModifierBox.getElement())).toBe(
-        true
-      );
+      expect(document.body.contains(window.ModifierBox.getElement())).toBe(true);
     });
 
     test('should show existing modifier box', async () => {
@@ -331,9 +316,7 @@ describe('ModifierBox Main Module', () => {
       await window.ModifierBox.show();
 
       expect(window.ModifierBoxThemeManager.updateTheme).toHaveBeenCalled();
-      expect(
-        window.ModifierBoxThemeManager.forceElementUpdates
-      ).toHaveBeenCalled();
+      expect(window.ModifierBoxThemeManager.forceElementUpdates).toHaveBeenCalled();
     });
   });
 
@@ -433,14 +416,6 @@ describe('ModifierBox Main Module', () => {
   });
 
   describe('Integration Methods', () => {
-    test('should not throw when calling updateSelectedModifier (no-op)', async () => {
-      await window.ModifierBox.create();
-
-      expect(() => {
-        window.ModifierBox.updateSelectedModifier();
-      }).not.toThrow();
-    });
-
     test('should call theme methods when available', async () => {
       await window.ModifierBox.create();
 
@@ -448,12 +423,8 @@ describe('ModifierBox Main Module', () => {
       expect(window.ModifierBoxThemeManager.updateTheme).toHaveBeenCalled();
 
       window.ModifierBox.forceThemeRefresh();
-      expect(
-        window.ModifierBoxThemeManager.forceThemeRefresh
-      ).toHaveBeenCalled();
-      expect(
-        window.ModifierBoxThemeManager.forceElementUpdates
-      ).toHaveBeenCalled();
+      expect(window.ModifierBoxThemeManager.forceThemeRefresh).toHaveBeenCalled();
+      expect(window.ModifierBoxThemeManager.forceElementUpdates).toHaveBeenCalled();
     });
 
     test('should not throw when calling syncGlobalVars (no-op)', async () => {
@@ -483,123 +454,9 @@ describe('ModifierBox Main Module', () => {
       // Create the modifier box (which triggers the event listener setup)
       await window.ModifierBox.create();
 
-      expect(addEventListener).toHaveBeenCalledWith(
-        'beforeunload',
-        expect.any(Function)
-      );
+      expect(addEventListener).toHaveBeenCalledWith('beforeunload', expect.any(Function));
 
       addEventListener.mockRestore();
-    });
-  });
-
-  describe('Global State Initialization', () => {
-    let mockModifierBox;
-
-    beforeEach(() => {
-      // Helper function to create a mock modifier box
-      function createMockModifierBox() {
-        const box = document.createElement('div');
-        box.id = 'pixels-modifier-box';
-        box.innerHTML = `
-          <div class="pixels-header">
-            <span class="pixels-title">
-              <img src="logo.png" alt="Pixels" class="pixels-logo"> Test Title
-            </span>
-            <div class="pixels-controls">
-              <button class="add-modifier-btn" type="button">Add</button>
-            </div>
-          </div>
-          <div class="pixels-content">
-            <div class="modifier-row">
-              <input type="radio" name="modifier-select" value="0" class="modifier-radio" id="mod-0" checked>
-              <input type="text" class="modifier-name" placeholder="Modifier 1" value="Modifier 1" data-index="0">
-              <input type="number" class="modifier-value" value="0" min="-99" max="99" data-index="0">
-              <button class="remove-row-btn" type="button">×</button>
-            </div>
-          </div>
-        `;
-        document.body.appendChild(box);
-        return box;
-      }
-
-      mockModifierBox = createMockModifierBox();
-
-      // Mock updateSelectedModifier to capture calls
-      window.ModifierBoxRowManager = {
-        updateSelectedModifier: jest.fn(),
-      };
-    });
-
-    test('should sync global state from UI when modifier box is shown', () => {
-      // Set up a modifier box with non-default values
-      const row = mockModifierBox.querySelector('.modifier-row');
-      const nameInput = row.querySelector('.modifier-name');
-      const valueInput = row.querySelector('.modifier-value');
-
-      nameInput.value = 'Custom Modifier';
-      valueInput.value = '5';
-
-      // Call the show logic that syncs global state
-      if (mockModifierBox && window.ModifierBoxRowManager) {
-        window.ModifierBoxRowManager.updateSelectedModifier(mockModifierBox);
-      }
-
-      // Verify that updateSelectedModifier was called to sync state FROM UI
-      expect(
-        window.ModifierBoxRowManager.updateSelectedModifier
-      ).toHaveBeenCalledWith(mockModifierBox);
-    });
-
-    test('should not overwrite UI values with stale global state', () => {
-      // This test verifies that we don't restore old global state TO the UI
-      // when showing the modifier box
-
-      const row = mockModifierBox.querySelector('.modifier-row');
-      const nameInput = row.querySelector('.modifier-name');
-      const valueInput = row.querySelector('.modifier-value');
-
-      // User sets custom values in UI
-      nameInput.value = 'User Custom Modifier';
-      valueInput.value = '7';
-
-      // Simulate old global state (should NOT overwrite UI)
-      window.pixelsModifierName = 'Old Global State';
-      window.pixelsModifier = '3';
-
-      // The showModifierBox logic should call updateSelectedModifier
-      // which reads FROM the UI TO update global state, not the reverse
-      const originalUpdateFunction =
-        window.ModifierBoxRowManager.updateSelectedModifier;
-      window.ModifierBoxRowManager.updateSelectedModifier = jest
-        .fn()
-        .mockImplementation(modifierBox => {
-          // Simulate the real updateSelectedModifier behavior
-          const selectedRadio = modifierBox.querySelector(
-            'input[name="modifier-select"]:checked'
-          );
-          if (selectedRadio) {
-            const row = selectedRadio.closest('.modifier-row');
-            if (row) {
-              const nameInput = row.querySelector('.modifier-name');
-              const valueInput = row.querySelector('.modifier-value');
-              window.pixelsModifierName = nameInput.value || 'Unnamed';
-              window.pixelsModifier = valueInput.value || '0';
-            }
-          }
-        });
-
-      // Call the sync logic
-      if (mockModifierBox && window.ModifierBoxRowManager) {
-        window.ModifierBoxRowManager.updateSelectedModifier(mockModifierBox);
-      }
-
-      // Verify UI values were preserved (not overwritten)
-      expect(nameInput.value).toBe('User Custom Modifier');
-      expect(valueInput.value).toBe('7');
-
-      // Verify global state was updated FROM the UI
-      expect(window.pixelsModifierName).toBe('User Custom Modifier');
-      expect(window.pixelsModifier).toBe('7');
     });
   });
 });

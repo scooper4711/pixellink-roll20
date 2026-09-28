@@ -30,19 +30,14 @@ export function setupMinimizeControls(modifierBox: HTMLElement): void {
 }
 
 // Persist the minimized flag (per-device preference) via the storage wrapper.
-function persistMinimizedState(minimized: boolean): void {
+async function persistMinimizedState(minimized: boolean): Promise<void> {
   try {
     if (
       typeof window !== 'undefined' &&
       window.PixelsProfileStorage &&
       typeof window.PixelsProfileStorage.setMinimized === 'function'
     ) {
-      const result = window.PixelsProfileStorage.setMinimized(minimized);
-      if (typeof result?.catch === 'function') {
-        result.catch((error: Error) => {
-          console.error('Error persisting minimized state:', error);
-        });
-      }
+      await window.PixelsProfileStorage.setMinimized(minimized);
     }
   } catch (error) {
     console.error('Error persisting minimized state:', error);

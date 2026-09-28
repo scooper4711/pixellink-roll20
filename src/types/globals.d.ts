@@ -18,7 +18,6 @@ interface ModifierBoxModule {
   hide(): void;
   isVisible(): boolean;
   getElement(): HTMLElement | null;
-  updateSelectedModifier(): void;
   isInitialized(): boolean;
   updateTheme(): void;
   forceThemeRefresh(): void;
@@ -46,8 +45,6 @@ interface ModifierBoxRowManagerModule {
   addModifierRow(modifierBox: HTMLElement): void;
   removeModifierRow(rowElement: HTMLElement, modifierBox: HTMLElement): void;
   updateEventListeners(modifierBox: HTMLElement): void;
-  updateSelectedModifier(): void;
-  clearModifierState(): void;
   reindexRows(modifierBox: HTMLElement): void;
   serializeRows(modifierBox: HTMLElement): RowData;
   applyRows(modifierBox: HTMLElement, data: RowData): boolean;

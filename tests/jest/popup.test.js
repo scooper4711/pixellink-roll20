@@ -774,6 +774,10 @@ describe('Popup Extended Coverage', () => {
     require('../../src/components/popup/popup.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
     await flush(60);
+    // renderProfiles proceeds without the banner: empty state shown, no crash
+    expect(document.getElementById('activeProfileBanner')).toBeNull();
+    expect(document.getElementById('profileEmpty').style.display).toBe('block');
+    expect(document.querySelectorAll('.profile-item')).toHaveLength(0);
     spy.mockRestore();
   });
 
@@ -860,6 +864,9 @@ describe('Popup Extended Coverage', () => {
     document.getElementById('profileName').value = 'P2';
     document.getElementById('saveProfile').click();
     await flush(60);
+    // both failed saves persisted nothing and rendered no rows
+    expect(store.local['pixels_profiles']).toEqual({});
+    expect(document.querySelectorAll('.profile-item')).toHaveLength(0);
     spy.mockRestore();
   });
 
@@ -992,6 +999,9 @@ describe('Popup Extended Coverage', () => {
     // stale export button still in DOM refers to deleted profile
     document.querySelector('.profile-item-btn.export').click();
     await flush(60);
+    // missing profile triggers a re-render with an empty list
+    expect(document.querySelectorAll('.profile-item')).toHaveLength(0);
+    expect(document.getElementById('profileEmpty').style.display).toBe('block');
     spy.mockRestore();
   });
 
