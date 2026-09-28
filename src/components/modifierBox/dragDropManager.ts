@@ -153,6 +153,24 @@ function updateDragPosition(clientX: number, clientY: number): void {
   draggedElement.style.top = `${clientY - 20}px`;
 }
 
+function findInsertBeforeElement(rows: HTMLElement[], clientY: number): ChildNode | null {
+  let ref: ChildNode | null = null;
+  let minDistance = Infinity;
+
+  rows.forEach(row => {
+    const rect = row.getBoundingClientRect();
+    const rowCenter = rect.top + rect.height / 2;
+    const distance = Math.abs(clientY - rowCenter);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      ref = clientY < rowCenter ? row : row.nextSibling;
+    }
+  });
+
+  return ref;
+}
+
 function updateDropTarget(clientX: number, clientY: number): void {
   if (!draggedElement || !placeholder) {
     return;
@@ -167,27 +185,13 @@ function updateDropTarget(clientX: number, clientY: number): void {
     row => row !== draggedElement && row !== placeholder
   ) as HTMLElement[];
 
-  let insertBeforeElement: ChildNode | null = null;
-  let minDistance = Infinity;
-
-  rows.forEach(row => {
-    const rect = row.getBoundingClientRect();
-    const rowCenter = rect.top + rect.height / 2;
-    const distance = Math.abs(clientY - rowCenter);
-
-    if (distance < minDistance) {
-      minDistance = distance;
-      insertBeforeElement = clientY < rowCenter ? row : row.nextSibling;
-    }
-  });
+  const insertBeforeElement = findInsertBeforeElement(rows, clientY);
 
   // Move placeholder to the appropriate position
-  if (insertBeforeElement !== placeholder.nextSibling) {
-    if (insertBeforeElement) {
-      insertBeforeElement.before(placeholder);
-    } else {
-      content.appendChild(placeholder);
-    }
+  if (insertBeforeElement === null) {
+    content.appendChild(placeholder);
+  } else if (insertBeforeElement !== placeholder.nextSibling) {
+    insertBeforeElement.before(placeholder);
   }
 }
 
