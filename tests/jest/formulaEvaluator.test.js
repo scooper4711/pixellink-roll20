@@ -385,8 +385,18 @@ describe('evaluateWithValues', () => {
   });
 
   test('should fall back to random values when physical values run out', () => {
-    const result = evaluateWithValues('2d6', [{ face: 3, dieSize: 6 }]);
-    expect(result.value).toBeGreaterThanOrEqual(4);
-    expect(result.value).toBeLessThanOrEqual(9);
+    // Mock crypto so the fallback roll is deterministic (0 -> face 1).
+    // Unmocked, the forked dice-roller-parser maps large random floats to
+    // faces above the die size (e.g. 7 on a d6), making this test flaky.
+    const spy = jest.spyOn(crypto, 'getRandomValues').mockImplementation(array => {
+      array[0] = 0;
+      return array;
+    });
+    try {
+      const result = evaluateWithValues('2d6', [{ face: 3, dieSize: 6 }]);
+      expect(result.value).toBe(4);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });
