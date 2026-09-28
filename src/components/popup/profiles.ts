@@ -182,7 +182,7 @@ function loadProfile(name: string): void {
       return;
     }
     sendMessage({ action: 'applyProfile', profile }, (resp: MessageResponse | undefined) => {
-      if (chrome.runtime.lastError || !resp || !resp.success) {
+      if (chrome.runtime?.lastError || !resp?.success) {
         showText('Open Roll20 to load a profile.');
         return;
       }

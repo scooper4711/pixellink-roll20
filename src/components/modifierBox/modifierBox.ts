@@ -150,7 +150,7 @@ function createModifierBoxFallback(): HTMLElement {
 
   let logoUrl = 'assets/images/logo-128.png';
   try {
-    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+    if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
       logoUrl = chrome.runtime.getURL('assets/images/logo-128.png');
     }
   } catch {
@@ -271,8 +271,7 @@ export const create = createModifierBox;
 export const show = showModifierBox;
 export const hide = hideModifierBox;
 export const isVisible = isModifierBoxVisibleFunc;
-export const getElement = getModifierBoxElement;
-export const isInitialized = isModifierBoxInitialized;
+export { getModifierBoxElement as getElement, isModifierBoxInitialized as isInitialized } from './stateManager';
 export const updateTheme = updateThemeWrapper;
 export const forceThemeRefresh = forceThemeRefreshWrapper;
 export { syncGlobalVars };

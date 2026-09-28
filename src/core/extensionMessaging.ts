@@ -91,7 +91,7 @@ export const setupMessageListener = (): void => {
   // Only set up message listener if in extension context
   if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     try {
-      chrome.runtime.onMessage.addListener((msg: Record<string, unknown>, _sender, _sendResponse) => {
+      chrome.runtime.onMessage.addListener(async (msg: Record<string, unknown>, _sender, _sendResponse) => {
         // Handle null/undefined messages gracefully
         if (!msg || typeof msg !== 'object') {
           console.warn(`Received invalid message: ${JSON.stringify(msg)}`);
@@ -108,12 +108,7 @@ export const setupMessageListener = (): void => {
           case 'connect':
             try {
               if (window.connectToPixel) {
-                const pending = window.connectToPixel();
-                if (pending && typeof pending.catch === 'function') {
-                  pending.catch((error: Error) => {
-                    console.warn('Error connecting to pixel:', error);
-                  });
-                }
+                await window.connectToPixel();
               }
             } catch (error) {
               console.warn('Error connecting to pixel:', error);
