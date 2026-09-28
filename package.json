@@ -71,8 +71,9 @@
       "!<rootDir>/tests/jest/experimental/**/*.test.ts"
     ],
     "collectCoverageFrom": [
-      "src/content/**/*.ts",
-      "!src/content/**/*.test.ts"
+      "src/**/*.ts",
+      "!src/**/*.test.ts",
+      "!src/types/**"
     ],
     "moduleFileExtensions": [
       "ts",

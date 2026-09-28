@@ -30,9 +30,7 @@ interface ModifierBoxModule {
 interface ModifierBoxThemeManagerModule {
   addStyles(): void;
   updateTheme(modifierBox: HTMLElement): void;
-  startThemeMonitoring(
-    callback: (theme: string, colors: ThemeColors) => void
-  ): void;
+  startThemeMonitoring(callback: (theme: string, colors: ThemeColors) => void): void;
   stopThemeMonitoring(): void;
   forceThemeRefresh(modifierBox: HTMLElement): void;
   forceElementUpdates(modifierBox: HTMLElement): void;
@@ -66,10 +64,7 @@ interface ModifierBoxRowManagerModule {
 
 interface ModifierBoxUIControlsModule {
   setupMinimizeControls(modifierBox: HTMLElement): void;
-  setupClearAllControls(
-    modifierBox: HTMLElement,
-    clearAllCallback: () => void
-  ): void;
+  setupClearAllControls(modifierBox: HTMLElement, clearAllCallback: () => void): void;
   applyMinimizedState(modifierBox: HTMLElement, minimized: boolean): void;
   restoreMinimizedState(modifierBox: HTMLElement): Promise<void>;
 }
@@ -96,15 +91,13 @@ interface ModifierBoxPopoutManagerModule {
 }
 
 interface ModifierBoxComponentInitializerModule {
-  setupModifierBoxComponents(
-    modifierBox: HTMLElement,
-    clearAllCallback: () => void
-  ): boolean;
+  setupModifierBoxComponents(modifierBox: HTMLElement, clearAllCallback: () => void): boolean;
   checkDependencies(): boolean;
 }
 
 interface PixelsCommandModule {
-  setupChatInterception(): void;
+  setupChatInterception(): () => void;
+  teardownChatInterception(): void;
   offerRoll(dieType: number, faceValue: number): boolean;
   isPromptActive(): boolean;
   cancelPrompt(): void;
@@ -129,13 +122,8 @@ interface PixelsProfileStorageModule {
   setActiveProfile(name: string): Promise<boolean>;
   exportProfiles(): Promise<ProfileExportBundle>;
   exportProfile(name: string): Promise<ProfileExportBundle | null>;
-  importProfiles(
-    bundle: ProfileExportBundle
-  ): Promise<{ imported: number; skipped: number; error?: string }>;
-  mergeProfiles(
-    localProfiles: ProfileMap,
-    syncProfiles: ProfileMap
-  ): ProfileMap;
+  importProfiles(bundle: ProfileExportBundle): Promise<{ imported: number; skipped: number; error?: string }>;
+  mergeProfiles(localProfiles: ProfileMap, syncProfiles: ProfileMap): ProfileMap;
   uniqueName(base: string, existingNames: Set<string>): string;
   PROFILES_KEY: string;
   MINIMIZED_KEY: string;
@@ -146,9 +134,7 @@ interface ThemeDetectorModule {
   detectTheme(): string;
   parseColor(colorStr: string): RGBColor | null;
   getThemeColors(): ThemeColors;
-  onThemeChange(
-    callback: (theme: string, colors: ThemeColors) => void
-  ): MutationObserver;
+  onThemeChange(callback: (theme: string, colors: ThemeColors) => void): MutationObserver;
 }
 
 // --- Data Types ---
@@ -264,17 +250,13 @@ interface Window {
   ThemeDetector: ThemeDetectorModule;
   CSSLoader: {
     loadCSS(cssPath: string, id: string): Promise<void>;
-    loadMultipleCSS(
-      cssFiles: Array<{ path: string; id: string }>
-    ): Promise<void[]>;
+    loadMultipleCSS(cssFiles: Array<{ path: string; id: string }>): Promise<void[]>;
     removeCSS(id: string): void;
     isLoaded(id: string): boolean;
   };
   HTMLLoader: {
     loadTemplate(templatePath: string, id: string): Promise<string>;
-    loadMultipleTemplates(
-      templates: Array<{ path: string; id: string }>
-    ): Promise<string[]>;
+    loadMultipleTemplates(templates: Array<{ path: string; id: string }>): Promise<string[]>;
     isLoaded(id: string): boolean;
     getTemplate(id: string): string | null;
   };
@@ -308,9 +290,7 @@ interface Window {
 
   // Legacy individual global functions
   connectToPixel(): Promise<import('@scooper4711/pixels-ble').Pixel | null>;
-  connectToPixelByName(
-    name: string
-  ): Promise<import('@scooper4711/pixels-ble').Pixel | null>;
+  connectToPixelByName(name: string): Promise<import('@scooper4711/pixels-ble').Pixel | null>;
   disconnectAllPixels(): void;
   getPixels(): import('@scooper4711/pixels-ble').Pixel[];
   sendTextToExtension(txt: string): void;
@@ -345,10 +325,7 @@ interface DocumentPictureInPictureWindow extends Window {
 }
 
 interface DocumentPictureInPicture {
-  requestWindow(options?: {
-    width?: number;
-    height?: number;
-  }): Promise<DocumentPictureInPictureWindow>;
+  requestWindow(options?: { width?: number; height?: number }): Promise<DocumentPictureInPictureWindow>;
 }
 
 interface Window {

@@ -22,6 +22,18 @@ describe('PixelsCommand', () => {
     PixelsCommand = require('../../src/content/modules/PixelsCommand.js').default;
   });
 
+  afterEach(async () => {
+    // Disconnect any chat observer left running so queued MutationObserver
+    // callbacks can't fire after teardown (when `document` is gone).
+    try {
+      PixelsCommand?.teardownChatInterception?.();
+    } catch {
+      // ignore teardown errors
+    }
+    // Flush pending MutationObserver microtasks while `document` is valid.
+    await new Promise(resolve => setTimeout(resolve, 0));
+  });
+
   function slotCount() {
     return document.querySelectorAll('.pixels-cmd-slot').length;
   }

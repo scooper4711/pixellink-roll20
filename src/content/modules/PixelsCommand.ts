@@ -575,22 +575,60 @@ function injectOverlayStyles(): void {
 
 // --- Chat Interception ---
 
-function setupChatInterception(): void {
-  const observer = new MutationObserver(() => {
+let chatObserver: MutationObserver | null = null;
+
+function teardownChatInterception(): void {
+  chatObserver?.disconnect();
+  chatObserver = null;
+}
+
+function setupChatInterception(): () => void {
+  // Stay idempotent across re-inits (content script + tests).
+  teardownChatInterception();
+
+  const attachIfPresent = (): boolean => {
+    if (typeof document === 'undefined') {
+      return false;
+    }
     const chatInput = document.getElementById('textchat-input');
     if (chatInput && !chatInput.dataset.pixelsIntercepted) {
       chatInput.dataset.pixelsIntercepted = 'true';
       attachChatListeners(chatInput);
+      return true;
+    }
+    return false;
+  };
+
+  const observer = new MutationObserver(() => {
+    // jsdom/Jest may tear down `document` before queued callbacks run.
+    if (typeof document === 'undefined') {
       observer.disconnect();
+      if (chatObserver === observer) {
+        chatObserver = null;
+      }
+      return;
+    }
+    if (attachIfPresent()) {
+      observer.disconnect();
+      if (chatObserver === observer) {
+        chatObserver = null;
+      }
     }
   });
+  chatObserver = observer;
+
+  if (typeof document === 'undefined' || !document.body) {
+    return teardownChatInterception;
+  }
   observer.observe(document.body, { childList: true, subtree: true });
 
-  const chatInput = document.getElementById('textchat-input');
-  if (chatInput && !chatInput.dataset.pixelsIntercepted) {
-    chatInput.dataset.pixelsIntercepted = 'true';
-    attachChatListeners(chatInput);
+  // Chat already present: attach now and don't leave the observer running.
+  if (attachIfPresent()) {
+    observer.disconnect();
+    chatObserver = null;
   }
+
+  return teardownChatInterception;
 }
 
 function attachChatListeners(chatInput: HTMLElement): void {
@@ -732,6 +770,7 @@ function interceptFormula(formulaStr: string, title?: string): boolean {
 
 const PixelsCommand = {
   setupChatInterception,
+  teardownChatInterception,
   offerRoll,
   isPromptActive,
   cancelPrompt,
@@ -739,7 +778,15 @@ const PixelsCommand = {
   interceptFormula,
 };
 
-export { setupChatInterception, offerRoll, isPromptActive, cancelPrompt, parseFormula, interceptFormula };
+export {
+  setupChatInterception,
+  teardownChatInterception,
+  offerRoll,
+  isPromptActive,
+  cancelPrompt,
+  parseFormula,
+  interceptFormula,
+};
 export default PixelsCommand;
 
 if (typeof window !== 'undefined') {
