@@ -152,6 +152,9 @@
   align-items: center !important;
   margin-bottom: 8px !important;
   gap: 8px !important;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease !important;
 }
 
 #pixels-modifier-box .modifier-radio {
@@ -368,24 +371,6 @@
   user-select: none !important;
 }
 
-#pixels-modifier-box .drag-handle {
-  flex: 0 0 auto !important;
-  width: 20px !important;
-  height: 100% !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: grab !important;
-  color: #888888 !important;
-  font-size: 12px !important;
-  line-height: 1 !important;
-  margin-right: 8px !important;
-  padding: 4px 2px !important;
-  border-radius: 3px !important;
-  transition: all 0.2s ease !important;
-  user-select: none !important;
-}
-
 #pixels-modifier-box .drag-handle:hover {
   color: #cccccc !important;
   background-color: rgba(255, 255, 255, 0.1) !important;
@@ -410,13 +395,7 @@
   height: 3px !important;
   margin: 4px 0 !important;
   border-radius: 2px !important;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    #4caf50 20%,
-    #4caf50 80%,
-    transparent 100%
-  ) !important;
+  background: linear-gradient(90deg, transparent 0%, #4caf50 20%, #4caf50 80%, transparent 100%) !important;
   opacity: 0.8 !important;
   animation: pulse-line 1.5s ease-in-out infinite !important;
   transition: all 0.2s ease !important;
@@ -426,20 +405,13 @@
 @keyframes pulse-line {
   0%,
   100% {
-    opacity: 0.6 !important;
-    transform: scaleY(1) !important;
+    opacity: 0.6;
+    transform: scaleY(1);
   }
   50% {
-    opacity: 1 !important;
-    transform: scaleY(1.5) !important;
+    opacity: 1;
+    transform: scaleY(1.5);
   }
-}
-
-/* Smooth transitions for row reordering */
-#pixels-modifier-box .modifier-row {
-  transition:
-    transform 0.2s ease,
-    opacity 0.2s ease !important;
 }
 
 /* Visual feedback when hovering over drop zones */

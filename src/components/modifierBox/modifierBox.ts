@@ -21,11 +21,9 @@ function _resetStateWrapper(): void {
   resetState();
 }
 
-const _getModifierBoxElementWrapper = (): HTMLElement | null =>
-  getModifierBoxElement();
+const _getModifierBoxElementWrapper = (): HTMLElement | null => getModifierBoxElement();
 const isModifierBoxVisibleFunc = (): boolean => isModifierBoxVisible();
-const _isModifierBoxInitializedWrapper = (): boolean =>
-  isModifierBoxInitialized();
+const _isModifierBoxInitializedWrapper = (): boolean => isModifierBoxInitialized();
 
 // No-op: modifier selection is removed. Kept for backward compatibility.
 const updateSelectedModifierWrapper = (): void => {};
@@ -34,10 +32,7 @@ const updateSelectedModifierWrapper = (): void => {};
 const updateThemeWrapper = (): void => {
   const modifierBox = getModifierBoxElement();
   if (modifierBox) {
-    if (
-      window.ModifierBoxThemeManager &&
-      window.ModifierBoxThemeManager.updateTheme
-    ) {
+    if (window.ModifierBoxThemeManager?.updateTheme) {
       window.ModifierBoxThemeManager.updateTheme(modifierBox);
     } else if (typeof updateThemeFromThemeManager === 'function') {
       updateThemeFromThemeManager(modifierBox);
@@ -49,10 +44,7 @@ const updateThemeWrapper = (): void => {
 const forceThemeRefreshWrapper = (): void => {
   const modifierBox = getModifierBoxElement();
   if (modifierBox) {
-    if (
-      window.ModifierBoxThemeManager &&
-      window.ModifierBoxThemeManager.forceThemeRefresh
-    ) {
+    if (window.ModifierBoxThemeManager?.forceThemeRefresh) {
       window.ModifierBoxThemeManager.forceThemeRefresh(modifierBox);
       if (window.ModifierBoxThemeManager.forceElementUpdates) {
         window.ModifierBoxThemeManager.forceElementUpdates(modifierBox);
@@ -73,21 +65,16 @@ const syncGlobalVars = (): void => {};
 
 async function createModifierBox(): Promise<HTMLElement | null> {
   const hasThemeManager =
-    window.ModifierBoxThemeManager &&
-    typeof window.ModifierBoxThemeManager.addStyles === 'function';
+    window.ModifierBoxThemeManager && typeof window.ModifierBoxThemeManager.addStyles === 'function';
 
   const hasDragHandler =
-    window.ModifierBoxDragHandler &&
-    typeof window.ModifierBoxDragHandler.setupDragFunctionality === 'function';
+    window.ModifierBoxDragHandler && typeof window.ModifierBoxDragHandler.setupDragFunctionality === 'function';
 
   const hasRowManager =
-    window.ModifierBoxRowManager &&
-    typeof window.ModifierBoxRowManager.setupModifierRowLogic === 'function';
+    window.ModifierBoxRowManager && typeof window.ModifierBoxRowManager.setupModifierRowLogic === 'function';
 
   if (!hasThemeManager || !hasDragHandler || !hasRowManager) {
-    console.error(
-      'Required modules not loaded. Make sure all modifier box modules are included.'
-    );
+    console.error('Required modules not loaded. Make sure all modifier box modules are included.');
     return null;
   }
 
@@ -102,13 +89,8 @@ async function createModifierBox(): Promise<HTMLElement | null> {
     setModifierBoxVisible(existingBox.style.display !== 'none');
 
     // Legacy migration: old modifier names no longer relevant
-    const firstNameInput = existingBox.querySelector(
-      '.modifier-name'
-    ) as HTMLInputElement | null;
-    if (
-      firstNameInput &&
-      (firstNameInput.value === 'None' || firstNameInput.value === 'D20')
-    ) {
+    const firstNameInput = existingBox.querySelector('.modifier-name') as HTMLInputElement | null;
+    if (firstNameInput?.value === 'None' || firstNameInput?.value === 'D20') {
       firstNameInput.value = 'Attack';
       firstNameInput.placeholder = 'Name';
     }
@@ -120,29 +102,20 @@ async function createModifierBox(): Promise<HTMLElement | null> {
 
   try {
     if (!loadTemplate) {
-      console.error(
-        'HTMLLoader module not available. Falling back to inline HTML.'
-      );
+      console.error('HTMLLoader module not available. Falling back to inline HTML.');
       return createModifierBoxFallback();
     }
 
     let logoUrl = 'assets/images/logo-128.png';
     try {
-      if (
-        typeof chrome !== 'undefined' &&
-        chrome.runtime &&
-        chrome.runtime.getURL
-      ) {
+      if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
         logoUrl = chrome.runtime.getURL('assets/images/logo-128.png');
       }
     } catch {
       // Using fallback logo URL (not in extension context)
     }
 
-    const htmlTemplate = await loadTemplate(
-      'components/modifierBox/modifierBox.html',
-      'modifierBox'
-    );
+    const htmlTemplate = await loadTemplate('components/modifierBox/modifierBox.html', 'modifierBox');
 
     const processedHTML = htmlTemplate.replace('{{logoUrl}}', logoUrl);
 
@@ -168,17 +141,13 @@ async function createModifierBox(): Promise<HTMLElement | null> {
 function createModifierBoxFallback(): HTMLElement {
   const newModifierBox = document.createElement('div');
   newModifierBox.id = 'pixels-modifier-box';
-  newModifierBox.setAttribute('data-testid', 'pixels-modifier-box');
+  newModifierBox.dataset.testid = 'pixels-modifier-box';
   newModifierBox.className = 'PIXELS_EXTENSION_BOX_FIND_ME';
   setModifierBoxElement(newModifierBox);
 
   let logoUrl = 'assets/images/logo-128.png';
   try {
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.runtime &&
-      chrome.runtime.getURL
-    ) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
       logoUrl = chrome.runtime.getURL('assets/images/logo-128.png');
     }
   } catch {
@@ -200,8 +169,8 @@ function createModifierBoxFallback(): HTMLElement {
             <div class="pixels-content">
                 <div class="modifier-row">
                     <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
-                    <input type="text" class="modifier-name" placeholder="Name" value="Attack" data-index="0">
-                    <input type="text" class="formula-input" placeholder="e.g. 2d6+3" value="1d20" data-index="0">
+                    <input type="text" class="modifier-name" placeholder="Name" aria-label="Roll name" value="Attack" data-index="0">
+                    <input type="text" class="formula-input" placeholder="e.g. 2d6+3" aria-label="Dice formula" value="1d20" data-index="0">
                     <button class="roll-formula-btn" type="button" title="Roll this formula">Roll</button>
                     <button class="remove-row-btn" type="button">×</button>
                 </div>
@@ -220,10 +189,7 @@ function createModifierBoxFallback(): HTMLElement {
 
 function _setupCleanupHandlers(): void {
   window.addEventListener('beforeunload', () => {
-    if (
-      window.ModifierBoxThemeManager &&
-      window.ModifierBoxThemeManager.stopThemeMonitoring
-    ) {
+    if (window.ModifierBoxThemeManager?.stopThemeMonitoring) {
       window.ModifierBoxThemeManager.stopThemeMonitoring();
     } else if (typeof stopThemeMonitoring === 'function') {
       stopThemeMonitoring();
@@ -248,15 +214,10 @@ async function showModifierBox(): Promise<void> {
     modifierBox.style.setProperty('display', 'block', 'important');
     setModifierBoxVisible(true);
 
-    const currentTop = parseInt(modifierBox.style.top) || 0;
-    const currentLeft = parseInt(modifierBox.style.left) || 0;
+    const currentTop = Number.parseInt(modifierBox.style.top) || 0;
+    const currentLeft = Number.parseInt(modifierBox.style.left) || 0;
 
-    if (
-      currentTop <= 0 ||
-      currentLeft <= 0 ||
-      currentLeft > window.innerWidth ||
-      currentTop > window.innerHeight
-    ) {
+    if (currentTop <= 0 || currentLeft <= 0 || currentLeft > window.innerWidth || currentTop > window.innerHeight) {
       modifierBox.style.top = '20px';
       modifierBox.style.left = '20px';
     }
@@ -296,10 +257,7 @@ function clearAllModifiers(): void {
     return;
   }
 
-  if (
-    window.ModifierBoxRowManager &&
-    window.ModifierBoxRowManager.resetAllRows
-  ) {
+  if (window.ModifierBoxRowManager?.resetAllRows) {
     window.ModifierBoxRowManager.resetAllRows(modifierBox);
   } else {
     console.error('ModifierBoxRowManager.resetAllRows not available');
@@ -335,7 +293,7 @@ export default {
 };
 
 if (typeof window !== 'undefined') {
-  if (window.ModifierBox && typeof window.jest === 'undefined') {
+  if (window.ModifierBox && window.jest === undefined) {
     // ModifierBox module already loaded, skipping re-initialization
   } else {
     window.ModifierBox = {

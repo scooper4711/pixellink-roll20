@@ -37,9 +37,7 @@ export function setupPopoutControls(modifierBox: HTMLElement): void {
     return;
   }
 
-  const btn = modifierBox.querySelector(
-    '.pixels-popout'
-  ) as HTMLButtonElement | null;
+  const btn = modifierBox.querySelector('.pixels-popout') as HTMLButtonElement | null;
   if (!btn) {
     return;
   }
@@ -99,7 +97,7 @@ function restore(modifierBox: HTMLElement): void {
   stopThemeSync();
   modifierBox.classList.remove(POPPED_OUT_CLASS);
 
-  if (placeholder && placeholder.parentNode) {
+  if (placeholder?.parentNode) {
     placeholder.replaceWith(modifierBox);
   } else if (!document.body.contains(modifierBox)) {
     document.body.appendChild(modifierBox);

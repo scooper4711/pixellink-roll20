@@ -4,14 +4,11 @@ import { DiceManager, Pixel } from '@scooper4711/pixels-ble';
 import { ChromeStorageAdapter } from '../../utils/ChromeStorageAdapter';
 
 const log = window.log || console.log;
-const postChatMessage: (message: string) => void =
-  window.postChatMessage || function () {};
-const sendTextToExtension: (txt: string) => void =
-  window.sendTextToExtension || function () {};
+const postChatMessage: (message: string) => void = window.postChatMessage || function () {};
+const sendTextToExtension: (txt: string) => void = window.sendTextToExtension || function () {};
 
 // Resolved lazily because roll20.ts sets this after PixelsBridge loads
-const getSendStatusToExtension = (): (() => void) =>
-  window.sendStatusToExtension || function () {};
+const getSendStatusToExtension = (): (() => void) => window.sendStatusToExtension || function () {};
 
 const storage = new ChromeStorageAdapter();
 const diceManager = new DiceManager(storage);
@@ -19,7 +16,7 @@ const diceManager = new DiceManager(storage);
 function wireRollEvents(pixel: Pixel): void {
   pixel.addEventListener('roll', ({ face, dieType }) => {
     const command = window.PixelsCommand;
-    if (command && command.isPromptActive()) {
+    if (command?.isPromptActive()) {
       command.offerRoll(dieType, face);
       return;
     }
@@ -29,7 +26,7 @@ function wireRollEvents(pixel: Pixel): void {
     }
 
     const batcher = window.RollBatcher;
-    if (batcher && batcher.addRoll) {
+    if (batcher?.addRoll) {
       const resolvedDieType = dieType || batcher.parseDieType(pixel.name, face);
       batcher.addRoll({
         dieName: pixel.name,
@@ -37,10 +34,8 @@ function wireRollEvents(pixel: Pixel): void {
         faceValue: face,
       });
     } else {
-      const message =
-        '&{template:default} {{name=Pixel Roll}}' +
-        ` {{Pixel=${face}}} {{Result=[[${face}]]}}`;
-      message.split('\\n').forEach(s => postChatMessage(s));
+      const message = '&{template:default} {{name=Pixel Roll}}' + ` {{Pixel=${face}}} {{Result=[[${face}]]}}`;
+      message.split(String.raw`\n`).forEach(s => postChatMessage(s));
       sendTextToExtension(`${pixel.name}: face up = ${face}`);
     }
   });
@@ -100,9 +95,7 @@ export async function connectToPixel(): Promise<Pixel | null> {
   }
 }
 
-export async function connectToPixelByName(
-  name: string
-): Promise<Pixel | null> {
+export async function connectToPixelByName(name: string): Promise<Pixel | null> {
   const existing = [...diceManager.dice.values()].find(p => p.name === name);
   if (existing) {
     if (existing.isConnected) return existing;
@@ -129,10 +122,7 @@ export function getConnectedPixelsList(): Pixel[] {
   return diceManager.connectedDice;
 }
 
-export function findPixelByName(
-  name: string,
-  pixelList?: Pixel[]
-): Pixel | undefined {
+export function findPixelByName(name: string, pixelList?: Pixel[]): Pixel | undefined {
   const list = pixelList || getPixels();
   return list.find(p => p.name === name);
 }

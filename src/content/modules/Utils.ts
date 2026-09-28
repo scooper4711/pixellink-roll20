@@ -10,10 +10,8 @@
 export const log: typeof console.log = console.log;
 
 // Helper function to get first element of array safely
-export const getArrayFirstElement = <T>(
-  array: ArrayLike<T> | undefined
-): T | undefined => {
-  return typeof array === 'undefined' ? undefined : array[0];
+export const getArrayFirstElement = <T>(array: ArrayLike<T> | undefined): T | undefined => {
+  return array === undefined ? undefined : array[0];
 };
 
 // Default export with all functions

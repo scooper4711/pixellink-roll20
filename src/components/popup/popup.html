@@ -1,7 +1,8 @@
 <!doctype html>
-<html>
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>Pixels Roll20</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
@@ -23,26 +24,16 @@
             </label>
           </div>
           <div class="roll-window-container" id="rollWindowContainer">
-            <label class="roll-window-label">
+            <label class="roll-window-label" for="rollWindowSlider">
               Roll window:
               <span id="rollWindowValue" class="roll-window-value">2</span>s
             </label>
-            <input
-              type="range"
-              id="rollWindowSlider"
-              class="roll-window-slider"
-              min="1"
-              max="10"
-              value="2"
-              step="1"
-            />
+            <input type="range" id="rollWindowSlider" class="roll-window-slider" min="1" max="10" value="2" step="1" />
           </div>
           <div class="toggle-container">
             <label class="toggle-label">
               <input type="checkbox" id="allowDiceSubstitution" />
-              <span class="toggle-text"
-                >Allow d8, d12 and d20 as d4, d6 and d10</span
-              >
+              <span class="toggle-text">Allow d8, d12 and d20 as d4, d6 and d10</span>
             </label>
           </div>
           <div class="button-container" id="savedRollsButtons">
@@ -57,19 +48,9 @@
         <div class="profiles-section" id="profilesSection">
           <div class="section-label">Saved Profiles</div>
 
-          <div
-            id="activeProfileBanner"
-            class="active-profile-banner"
-            style="display: none"
-          >
-            <span class="active-profile-label"
-              >Active: <span id="activeProfileName"></span
-            ></span>
-            <button
-              id="updateProfile"
-              class="profile-item-btn"
-              title="Save current popout into the active profile"
-            >
+          <div id="activeProfileBanner" class="active-profile-banner" style="display: none">
+            <span class="active-profile-label">Active: <span id="activeProfileName"></span></span>
+            <button id="updateProfile" class="profile-item-btn" title="Save current popout into the active profile">
               Update ↻
             </button>
           </div>
@@ -80,26 +61,22 @@
               type="text"
               class="profile-input"
               placeholder="Profile name"
+              aria-label="Profile name"
               maxlength="40"
             />
-            <button id="saveProfile" class="primary-button profile-save-btn">
-              Save
-            </button>
+            <button id="saveProfile" class="primary-button profile-save-btn">Save</button>
           </div>
           <ul id="profileList" class="profile-list"></ul>
-          <div id="profileEmpty" class="text-small text-muted">
-            No saved profiles yet.
-          </div>
+          <div id="profileEmpty" class="text-small text-muted">No saved profiles yet.</div>
 
           <div class="profile-io-row">
-            <button id="exportProfiles" class="secondary-button">
-              Export All
-            </button>
+            <button id="exportProfiles" class="secondary-button">Export All</button>
             <button id="importProfiles" class="secondary-button">Import</button>
             <input
               id="importFile"
               type="file"
               accept="application/json,.json"
+              aria-label="Import profiles file"
               style="display: none"
             />
           </div>
@@ -107,11 +84,7 @@
 
         <!-- Connection section -->
         <div class="connection-section">
-          <div
-            id="knownDiceSection"
-            class="known-dice-section"
-            style="display: none"
-          >
+          <div id="knownDiceSection" class="known-dice-section" style="display: none">
             <div class="section-label">
               Known Dice
               <span id="knownDiceCount" class="dice-count-label"></span>

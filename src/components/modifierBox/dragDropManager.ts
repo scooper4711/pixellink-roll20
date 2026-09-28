@@ -19,9 +19,7 @@ function setupDragAndDrop(modifierBox: HTMLElement): void {
     return;
   }
 
-  const content = modifierBox.querySelector(
-    '.pixels-content'
-  ) as ContentElementWithRef | null;
+  const content = modifierBox.querySelector('.pixels-content') as ContentElementWithRef | null;
   if (!content) {
     console.error('setupDragAndDrop: content area not found');
     return;
@@ -51,10 +49,7 @@ function addDragHandleToRow(row: HTMLElement): void {
   row.classList.add('draggable-row');
 }
 
-function setupEventDelegation(
-  content: ContentElementWithRef,
-  modifierBox: HTMLElement
-): void {
+function setupEventDelegation(content: ContentElementWithRef, modifierBox: HTMLElement): void {
   // Mouse events for drag initiation
   content.addEventListener('mousedown', handleMouseDown);
   document.addEventListener('mousemove', handleMouseMove);
@@ -91,11 +86,7 @@ function handleTouchStart(e: TouchEvent): void {
 
   e.preventDefault();
   const touch = e.touches[0];
-  startDrag(
-    dragHandle.parentElement as HTMLElement,
-    touch.clientX,
-    touch.clientY
-  );
+  startDrag(dragHandle.parentElement as HTMLElement, touch.clientX, touch.clientY);
 }
 
 function startDrag(row: HTMLElement, clientX: number, clientY: number): void {
@@ -162,6 +153,24 @@ function updateDragPosition(clientX: number, clientY: number): void {
   draggedElement.style.top = `${clientY - 20}px`;
 }
 
+function findInsertBeforeElement(rows: HTMLElement[], clientY: number): ChildNode | null {
+  let ref: ChildNode | null = null;
+  let minDistance = Infinity;
+
+  rows.forEach(row => {
+    const rect = row.getBoundingClientRect();
+    const rowCenter = rect.top + rect.height / 2;
+    const distance = Math.abs(clientY - rowCenter);
+
+    if (distance < minDistance) {
+      minDistance = distance;
+      ref = clientY < rowCenter ? row : row.nextSibling;
+    }
+  });
+
+  return ref;
+}
+
 function updateDropTarget(clientX: number, clientY: number): void {
   if (!draggedElement || !placeholder) {
     return;
@@ -176,38 +185,29 @@ function updateDropTarget(clientX: number, clientY: number): void {
     row => row !== draggedElement && row !== placeholder
   ) as HTMLElement[];
 
-  let insertBeforeElement: ChildNode | null = null;
-  let minDistance = Infinity;
-
-  rows.forEach(row => {
-    const rect = row.getBoundingClientRect();
-    const rowCenter = rect.top + rect.height / 2;
-    const distance = Math.abs(clientY - rowCenter);
-
-    if (distance < minDistance) {
-      minDistance = distance;
-      insertBeforeElement = clientY < rowCenter ? row : row.nextSibling;
-    }
-  });
+  const insertBeforeElement = findInsertBeforeElement(rows, clientY);
 
   // Move placeholder to the appropriate position
-  if (insertBeforeElement !== placeholder.nextSibling) {
-    content.insertBefore(placeholder, insertBeforeElement);
+  if (insertBeforeElement === null) {
+    content.appendChild(placeholder);
+  } else if (insertBeforeElement !== placeholder.nextSibling) {
+    insertBeforeElement.before(placeholder);
   }
+}
+
+function finishPointerRelease(): void {
+  if (!isDragging) {
+    return;
+  }
+  endDrag();
 }
 
 function handleMouseUp(_e: MouseEvent): void {
-  if (!isDragging) {
-    return;
-  }
-  endDrag();
+  finishPointerRelease();
 }
 
 function handleTouchEnd(_e: TouchEvent): void {
-  if (!isDragging) {
-    return;
-  }
-  endDrag();
+  finishPointerRelease();
 }
 
 function endDrag(): void {
@@ -215,9 +215,7 @@ function endDrag(): void {
     return;
   }
 
-  const content = draggedElement.closest(
-    '.pixels-content'
-  ) as ContentElementWithRef | null;
+  const content = draggedElement.closest('.pixels-content') as ContentElementWithRef | null;
   const modifierBox = content?._modifierBox;
 
   // Reset dragged element styles
@@ -261,9 +259,7 @@ function cleanup(): void {
 if (window.ModifierBoxRowManager) {
   const originalAddRow = window.ModifierBoxRowManager.addModifierRow;
   if (originalAddRow) {
-    window.ModifierBoxRowManager.addModifierRow = function (
-      modifierBox: HTMLElement
-    ): void {
+    window.ModifierBoxRowManager.addModifierRow = function (modifierBox: HTMLElement): void {
       originalAddRow.call(this, modifierBox);
 
       // Add drag handle to the newly created row

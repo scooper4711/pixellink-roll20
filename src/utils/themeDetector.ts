@@ -10,116 +10,95 @@ export const parseColor = (colorStr: string | null): RGBColor | null => {
   }
 
   // Handle rgb() format
-  const rgbMatch = colorStr.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  const rgbMatch = /rgb\((\d+),\s*(\d+),\s*(\d+)\)/.exec(colorStr);
   if (rgbMatch) {
     return {
-      r: parseInt(rgbMatch[1]),
-      g: parseInt(rgbMatch[2]),
-      b: parseInt(rgbMatch[3]),
+      r: Number.parseInt(rgbMatch[1]),
+      g: Number.parseInt(rgbMatch[2]),
+      b: Number.parseInt(rgbMatch[3]),
     };
   }
 
   // Handle rgba() format
-  const rgbaMatch = colorStr.match(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/);
+  const rgbaMatch = /rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/.exec(colorStr);
   if (rgbaMatch) {
     return {
-      r: parseInt(rgbaMatch[1]),
-      g: parseInt(rgbaMatch[2]),
-      b: parseInt(rgbaMatch[3]),
+      r: Number.parseInt(rgbaMatch[1]),
+      g: Number.parseInt(rgbaMatch[2]),
+      b: Number.parseInt(rgbaMatch[3]),
     };
   }
 
   // Handle hex format
-  const hexMatch = colorStr.match(/^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+  const hexMatch = /^#([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(colorStr);
   if (hexMatch) {
     return {
-      r: parseInt(hexMatch[1], 16),
-      g: parseInt(hexMatch[2], 16),
-      b: parseInt(hexMatch[3], 16),
+      r: Number.parseInt(hexMatch[1], 16),
+      g: Number.parseInt(hexMatch[2], 16),
+      b: Number.parseInt(hexMatch[3], 16),
     };
   }
 
   return null;
 };
 
-// Detect current Roll20 theme
-export const detectTheme = (): string => {
-  // First priority: Check Roll20's localStorage colorTheme setting
+// Read Roll20's colorTheme setting from localStorage, if valid.
+function themeFromStorage(): string | null {
+  let roll20Theme: string | null;
   try {
-    const roll20Theme = localStorage.getItem('colorTheme');
-    if (roll20Theme === 'dark' || roll20Theme === 'light') {
-      console.log(`Theme detected from Roll20 localStorage: ${roll20Theme}`);
-      return roll20Theme;
-    } else if (roll20Theme) {
-      console.log(
-        `Unexpected Roll20 theme value: ${roll20Theme}, falling back to other detection`
-      );
-    } else {
-      console.log(
-        'No colorTheme found in localStorage, falling back to other detection'
-      );
-    }
+    roll20Theme = localStorage.getItem('colorTheme');
   } catch (error) {
     console.warn('Could not access Roll20 localStorage colorTheme:', error);
+    return null;
   }
+  if (roll20Theme === 'dark' || roll20Theme === 'light') {
+    return roll20Theme;
+  }
+  return null;
+}
 
-  // Second priority: Check for Roll20's theme classes on body or html
+// Check Roll20's theme classes and data attributes on body/html.
+function themeFromDomClasses(): string | null {
   const body = document.body;
   const html = document.documentElement;
 
-  if (
-    body.classList.contains('darkmode') ||
-    html.classList.contains('darkmode')
-  ) {
+  if (body.classList.contains('darkmode') || html.classList.contains('darkmode')) {
     return 'dark';
   }
-  if (
-    body.classList.contains('lightmode') ||
-    html.classList.contains('lightmode')
-  ) {
+  if (body.classList.contains('lightmode') || html.classList.contains('lightmode')) {
     return 'light';
   }
 
-  // Check for data attributes
-  if ((body as HTMLElement).dataset.theme) {
-    return (body as HTMLElement).dataset.theme!;
-  }
-  if ((html as HTMLElement).dataset.theme) {
-    return (html as HTMLElement).dataset.theme!;
-  }
+  return body.dataset.theme || html.dataset.theme || null;
+}
 
-  // Check CSS custom properties
+function brightnessTheme(rgb: RGBColor): 'dark' | 'light' {
+  const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
+  return brightness < 128 ? 'dark' : 'light';
+}
+
+// Analyze CSS colors (custom properties, then chat container) to infer the theme.
+function themeFromCssColors(): string | null {
   const computedStyle = getComputedStyle(document.documentElement);
   const bgColor =
     computedStyle.getPropertyValue('--background-color') ||
     computedStyle.getPropertyValue('--main-bg') ||
     computedStyle.backgroundColor;
 
-  // Analyze background color to determine theme
-  if (bgColor) {
-    const rgb = parseColor(bgColor);
-    if (rgb) {
-      const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
-      return brightness < 128 ? 'dark' : 'light';
-    }
+  const bgRgb = bgColor ? parseColor(bgColor) : null;
+  if (bgRgb) {
+    return brightnessTheme(bgRgb);
   }
 
-  // Check Roll20's chat container styles as fallback
   const chatContainer = document.querySelector('.textchatcontainer, #textchat');
-  if (chatContainer) {
-    const chatStyle = getComputedStyle(chatContainer);
-    const chatBg = chatStyle.backgroundColor;
-    if (chatBg) {
-      const rgb = parseColor(chatBg);
-      if (rgb) {
-        const brightness = rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114;
-        return brightness < 128 ? 'dark' : 'light';
-      }
-    }
-  }
+  const chatBg = chatContainer ? getComputedStyle(chatContainer).backgroundColor : null;
+  const chatRgb = chatBg ? parseColor(chatBg) : null;
+  return chatRgb ? brightnessTheme(chatRgb) : null;
+}
 
-  // Default fallback
-  return 'dark';
+// Detect current Roll20 theme
+export const detectTheme = (): string => {
+  return themeFromStorage() ?? themeFromDomClasses() ?? themeFromCssColors() ?? 'dark';
 };
 
 // Get Roll20 theme colors
@@ -162,9 +141,7 @@ export const getThemeColors = (): ThemeColors => {
 type ThemeChangeCallback = (theme: string, colors: ThemeColors) => void;
 
 // Monitor theme changes
-export const onThemeChange = (
-  callback: ThemeChangeCallback
-): MutationObserver => {
+export const onThemeChange = (callback: ThemeChangeCallback): MutationObserver => {
   let currentTheme = detectTheme();
 
   // Monitor localStorage changes for Roll20's colorTheme
@@ -182,10 +159,7 @@ export const onThemeChange = (
 
   // Listen for storage events (changes from other tabs/windows)
   window.addEventListener('storage', (e: StorageEvent) => {
-    if (
-      e.key === 'colorTheme' &&
-      (e.newValue === 'dark' || e.newValue === 'light')
-    ) {
+    if (e.key === 'colorTheme' && (e.newValue === 'dark' || e.newValue === 'light')) {
       const newTheme = e.newValue;
       if (newTheme !== currentTheme) {
         currentTheme = newTheme;

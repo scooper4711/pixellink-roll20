@@ -6,9 +6,7 @@
 'use strict';
 
 // Generate the modifier box HTML structure
-export function generateModifierBoxHTML(
-  logoUrl: string = 'assets/images/logo-128.png'
-): string {
+export function generateModifierBoxHTML(logoUrl: string = 'assets/images/logo-128.png'): string {
   return `
     <div class="pixels-header">
         <span class="pixels-title">
@@ -23,8 +21,8 @@ export function generateModifierBoxHTML(
     <div class="pixels-content">
         <div class="modifier-row">
             <div class="drag-handle" title="Drag to reorder">⋮⋮</div>
-            <input type="text" class="modifier-name" placeholder="Name" value="Attack" data-index="0">
-            <input type="text" class="formula-input" placeholder="e.g. 2d6+3" value="1d20" data-index="0">
+            <input type="text" class="modifier-name" placeholder="Name" aria-label="Roll name" value="Attack" data-index="0">
+            <input type="text" class="formula-input" placeholder="e.g. 2d6+3" aria-label="Dice formula" value="1d20" data-index="0">
             <button class="roll-formula-btn" type="button" title="Roll this formula">Roll</button>
             <button class="remove-row-btn" type="button">×</button>
         </div>
@@ -36,11 +34,7 @@ export function generateModifierBoxHTML(
 export function getLogoUrl(): string {
   let logoUrl = 'assets/images/logo-128.png';
   try {
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.runtime &&
-      chrome.runtime.getURL
-    ) {
+    if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
       logoUrl = chrome.runtime.getURL('assets/images/logo-128.png');
     }
   } catch {
@@ -52,7 +46,7 @@ export function getLogoUrl(): string {
 export function createModifierBoxElement(): HTMLElement {
   const modifierBox = document.createElement('div');
   modifierBox.id = 'pixels-modifier-box';
-  modifierBox.setAttribute('data-testid', 'pixels-modifier-box');
+  modifierBox.dataset.testid = 'pixels-modifier-box';
   modifierBox.className = 'PIXELS_EXTENSION_BOX_FIND_ME';
 
   const logoUrl = getLogoUrl();
@@ -61,19 +55,14 @@ export function createModifierBoxElement(): HTMLElement {
   return modifierBox;
 }
 
-export function processTemplateHTML(
-  htmlTemplate: string,
-  logoUrl: string | null = null
-): string {
+export function processTemplateHTML(htmlTemplate: string, logoUrl: string | null = null): string {
   if (!logoUrl) {
     logoUrl = getLogoUrl();
   }
   return htmlTemplate.replace('{{logoUrl}}', logoUrl);
 }
 
-export function extractModifierBoxFromTemplate(
-  processedHTML: string
-): Element | null {
+export function extractModifierBoxFromTemplate(processedHTML: string): Element | null {
   const tempContainer = document.createElement('div');
   tempContainer.innerHTML = processedHTML;
   return tempContainer.firstElementChild;

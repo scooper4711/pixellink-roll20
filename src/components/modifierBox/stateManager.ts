@@ -34,9 +34,7 @@ export function isModifierBoxCreated(): boolean {
 }
 
 // Set the modifier box element
-export function setModifierBoxElement(
-  element: HTMLElement | null
-): HTMLElement | null {
+export function setModifierBoxElement(element: HTMLElement | null): HTMLElement | null {
   modifierBox = element;
   return modifierBox;
 }
@@ -67,18 +65,12 @@ export function findExistingModifierBox(): HTMLElement | null {
 // Reset module state (for testing)
 export function resetState(): void {
   // Remove existing element from DOM if it exists
-  if (modifierBox && modifierBox.parentNode) {
-    modifierBox.parentNode.removeChild(modifierBox);
-  }
+  modifierBox?.remove();
 
   // Also remove any other modifier boxes that might exist in DOM
-  const existingBoxes = document.querySelectorAll(
-    '#pixels-modifier-box, .PIXELS_EXTENSION_BOX_FIND_ME'
-  );
+  const existingBoxes = document.querySelectorAll('#pixels-modifier-box, .PIXELS_EXTENSION_BOX_FIND_ME');
   existingBoxes.forEach(box => {
-    if (box.parentNode) {
-      box.parentNode.removeChild(box);
-    }
+    box.remove();
   });
 
   modifierBox = null;
@@ -91,22 +83,15 @@ export function resetState(): void {
 export function updateLegacyDefaults(modifierBox: HTMLElement | null): void {
   if (!modifierBox) return;
 
-  const firstNameInput = modifierBox.querySelector(
-    '.modifier-name'
-  ) as HTMLInputElement | null;
-  if (
-    firstNameInput &&
-    (firstNameInput.value === 'None' || firstNameInput.value === 'D20')
-  ) {
+  const firstNameInput = modifierBox.querySelector('.modifier-name') as HTMLInputElement | null;
+  if (firstNameInput?.value === 'None' || firstNameInput?.value === 'D20') {
     firstNameInput.value = 'Attack';
     firstNameInput.placeholder = 'Name';
   }
 }
 
 // Ensure modifier box is in DOM and visible
-export function ensureModifierBoxInDOM(
-  modifierBox: HTMLElement | null
-): boolean {
+export function ensureModifierBoxInDOM(modifierBox: HTMLElement | null): boolean {
   if (!modifierBox) return false;
 
   // Ensure it's in the DOM
@@ -123,15 +108,10 @@ export function ensureModifierBoxInDOM(
 export function validatePosition(modifierBox: HTMLElement | null): void {
   if (!modifierBox) return;
 
-  const currentTop = parseInt(modifierBox.style.top) || 0;
-  const currentLeft = parseInt(modifierBox.style.left) || 0;
+  const currentTop = Number.parseInt(modifierBox.style.top) || 0;
+  const currentLeft = Number.parseInt(modifierBox.style.left) || 0;
 
-  if (
-    currentTop <= 0 ||
-    currentLeft <= 0 ||
-    currentLeft > window.innerWidth ||
-    currentTop > window.innerHeight
-  ) {
+  if (currentTop <= 0 || currentLeft <= 0 || currentLeft > window.innerWidth || currentTop > window.innerHeight) {
     modifierBox.style.top = '20px';
     modifierBox.style.left = '20px';
   }

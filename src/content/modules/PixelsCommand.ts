@@ -24,8 +24,8 @@ import {
 import type { PromptData, Slot } from './FormulaEvaluator';
 import type { RollBase } from '@3d-dice/dice-roller-parser';
 
-const COMMAND_PATTERN = /^\/pix(?:el(?:s)?)?(?:\s+(.+))?$/i;
-const GM_COMMAND_PATTERN = /^\/gmpix(?:el(?:s)?)?(?:\s+(.+))?$/i;
+const COMMAND_PATTERN = /^\/pix(?:els|el)?(?:\s+(.+))?$/i;
+const GM_COMMAND_PATTERN = /^\/gmpix(?:els|el)?(?:\s+(.+))?$/i;
 const ROLL_QUERY_PATTERN = /\?\{([^}]+)\}/g;
 
 let pendingPrompt: PromptData | null = null;
@@ -71,11 +71,7 @@ function extractRollQueries(formula: string): ExtractedQuery[] {
   return queries;
 }
 
-function resolveRollQueries(
-  formula: string,
-  onResolved: (resolved: string) => void,
-  onCancelled: () => void
-): void {
+function resolveRollQueries(formula: string, onResolved: (resolved: string) => void, onCancelled: () => void): void {
   const queries = extractRollQueries(formula);
   if (queries.length === 0) {
     onResolved(formula);
@@ -116,101 +112,98 @@ function createQueryModal(): HTMLElement {
   return modal;
 }
 
-function showQueryModal(
-  queries: ExtractedQuery[],
-  onSubmit: (values: string[]) => void,
-  onCancel: () => void
-): void {
-  if (!queryModalElement) {
-    queryModalElement = createQueryModal();
+function buildQuerySelect(query: ExtractedQuery, index: number): HTMLSelectElement {
+  const select = document.createElement('select');
+  select.className = 'pixels-query-select';
+  select.id = `pixels-query-input-${index}`;
+  select.dataset.index = String(index);
+  for (const opt of query.options ?? []) {
+    const optEl = document.createElement('option');
+    optEl.value = opt;
+    optEl.textContent = opt;
+    select.appendChild(optEl);
   }
+  return select;
+}
+
+function buildQueryInput(query: ExtractedQuery, index: number): HTMLInputElement {
+  const input = document.createElement('input');
+  input.className = 'pixels-query-input';
+  input.id = `pixels-query-input-${index}`;
+  input.type = 'text';
+  input.value = query.defaultValue;
+  input.dataset.index = String(index);
+  return input;
+}
+
+function buildQueryField(query: ExtractedQuery, index: number): HTMLElement {
+  const row = document.createElement('div');
+  row.className = 'pixels-query-row';
+
+  const label = document.createElement('label');
+  label.className = 'pixels-query-label';
+  label.textContent = query.label;
+  label.setAttribute('for', `pixels-query-input-${index}`);
+  row.appendChild(label);
+
+  row.appendChild(query.options ? buildQuerySelect(query, index) : buildQueryInput(query, index));
+  return row;
+}
+
+function replaceWithClone<T extends Node>(node: T): T {
+  const clone = node.cloneNode(true) as T;
+  node.parentNode!.replaceChild(clone, node);
+  return clone;
+}
+
+function collectQueryValues(modal: HTMLElement, count: number): string[] {
+  const values: string[] = [];
+  for (let i = 0; i < count; i++) {
+    const el = modal.querySelector(`#pixels-query-input-${i}`) as HTMLInputElement | HTMLSelectElement;
+    values.push(el.value);
+  }
+  return values;
+}
+
+function submitQueryValues(queries: ExtractedQuery[], onSubmit: (values: string[]) => void): void {
+  const values = collectQueryValues(queryModalElement!, queries.length);
+  hideQueryModal();
+  onSubmit(values);
+}
+
+function showQueryModal(queries: ExtractedQuery[], onSubmit: (values: string[]) => void, onCancel: () => void): void {
+  queryModalElement ??= createQueryModal();
   queryModalElement.style.display = 'block';
 
   const fieldsEl = queryModalElement.querySelector('.pixels-query-fields')!;
   fieldsEl.innerHTML = '';
 
   for (let i = 0; i < queries.length; i++) {
-    const query = queries[i];
-    const row = document.createElement('div');
-    row.className = 'pixels-query-row';
-
-    const label = document.createElement('label');
-    label.className = 'pixels-query-label';
-    label.textContent = query.label;
-    label.setAttribute('for', `pixels-query-input-${i}`);
-    row.appendChild(label);
-
-    if (query.options) {
-      const select = document.createElement('select');
-      select.className = 'pixels-query-select';
-      select.id = `pixels-query-input-${i}`;
-      select.dataset.index = String(i);
-      for (const opt of query.options) {
-        const optEl = document.createElement('option');
-        optEl.value = opt;
-        optEl.textContent = opt;
-        select.appendChild(optEl);
-      }
-      row.appendChild(select);
-    } else {
-      const input = document.createElement('input');
-      input.className = 'pixels-query-input';
-      input.id = `pixels-query-input-${i}`;
-      input.type = 'text';
-      input.value = query.defaultValue;
-      input.dataset.index = String(i);
-      row.appendChild(input);
-    }
-
-    fieldsEl.appendChild(row);
+    fieldsEl.appendChild(buildQueryField(queries[i], i));
   }
 
   // Wire up event handlers (replace old ones via cloneNode)
-  const cancelBtn = queryModalElement.querySelector('.pixels-query-cancel')!;
-  const newCancelBtn = cancelBtn.cloneNode(true);
-  cancelBtn.parentNode!.replaceChild(newCancelBtn, cancelBtn);
+  const newCancelBtn = replaceWithClone(queryModalElement.querySelector('.pixels-query-cancel')!);
+  const newSubmitBtn = replaceWithClone(queryModalElement.querySelector('.pixels-query-submit')!);
 
-  const submitBtn = queryModalElement.querySelector('.pixels-query-submit')!;
-  const newSubmitBtn = submitBtn.cloneNode(true);
-  submitBtn.parentNode!.replaceChild(newSubmitBtn, submitBtn);
-
-  const collectValues = (): string[] => {
-    const values: string[] = [];
-    for (let i = 0; i < queries.length; i++) {
-      const el = queryModalElement!.querySelector(
-        `#pixels-query-input-${i}`
-      ) as HTMLInputElement | HTMLSelectElement;
-      values.push(el.value);
-    }
-    return values;
-  };
-
-  const handleSubmit = (): void => {
-    const values = collectValues();
-    hideQueryModal();
-    onSubmit(values);
-  };
-
-  const handleCancel = (): void => {
+  newCancelBtn.addEventListener('click', () => {
     hideQueryModal();
     if (onCancel) {
       onCancel();
     }
-  };
-
-  newCancelBtn.addEventListener('click', handleCancel);
-  newSubmitBtn.addEventListener('click', handleSubmit);
+  });
+  newSubmitBtn.addEventListener('click', () => {
+    submitQueryValues(queries, onSubmit);
+  });
 
   fieldsEl.addEventListener('keydown', (event: Event) => {
     if ((event as KeyboardEvent).key === 'Enter') {
       event.preventDefault();
-      handleSubmit();
+      submitQueryValues(queries, onSubmit);
     }
   });
 
-  const firstInput = fieldsEl.querySelector(
-    'input, select'
-  ) as HTMLElement | null;
+  const firstInput = fieldsEl.querySelector('input, select') as HTMLElement | null;
   if (firstInput) {
     setTimeout(() => firstInput.focus(), 0);
   }
@@ -262,10 +255,7 @@ function startPrompt(promptData: PromptData): void {
 
 const SUBSTITUTION_MAP: Record<number, number> = { 8: 4, 12: 6, 20: 10 };
 
-function convertSubstitutedValue(
-  faceValue: number,
-  largerDieType: number
-): number {
+function convertSubstitutedValue(faceValue: number, largerDieType: number): number {
   const half = largerDieType / 2;
   return faceValue > half ? faceValue - half : faceValue;
 }
@@ -278,9 +268,7 @@ function offerRoll(dieType: number, faceValue: number): boolean {
     return false;
   }
 
-  const slot = pendingPrompt.slots.find(
-    s => s.value === null && s.type === dieType
-  );
+  const slot = pendingPrompt.slots.find(s => s.value === null && s.type === dieType);
 
   if (slot) {
     return fillSlot(slot, faceValue);
@@ -288,9 +276,7 @@ function offerRoll(dieType: number, faceValue: number): boolean {
 
   // d100 (percentile) always works as d10
   if (dieType === 100) {
-    const d10Slot = pendingPrompt.slots.find(
-      s => s.value === null && s.type === 10
-    );
+    const d10Slot = pendingPrompt.slots.find(s => s.value === null && s.type === 10);
     if (d10Slot) {
       const convertedValue = faceValue === 100 ? 10 : faceValue / 10;
       return fillSlot(d10Slot, convertedValue);
@@ -300,13 +286,9 @@ function offerRoll(dieType: number, faceValue: number): boolean {
   // Die substitution if enabled
   if (window.pixelsAllowDiceSubstitution && dieType in SUBSTITUTION_MAP) {
     const smallerType = SUBSTITUTION_MAP[dieType];
-    const exactSlotExists = pendingPrompt.slots.some(
-      s => s.value === null && s.type === dieType
-    );
+    const exactSlotExists = pendingPrompt.slots.some(s => s.value === null && s.type === dieType);
     if (!exactSlotExists) {
-      const substituteSlot = pendingPrompt.slots.find(
-        s => s.value === null && s.type === smallerType
-      );
+      const substituteSlot = pendingPrompt.slots.find(s => s.value === null && s.type === smallerType);
       if (substituteSlot) {
         const convertedValue = convertSubstitutedValue(faceValue, dieType);
         return fillSlot(substituteSlot, convertedValue);
@@ -352,10 +334,8 @@ function isPromptActive(): boolean {
 }
 
 function completePrompt(): void {
-  const postChatMessage: (msg: string) => void =
-    window.postChatMessage || function () {};
-  const sendText: (txt: string) => void =
-    window.sendTextToExtension || function () {};
+  const postChatMessage: (msg: string) => void = window.postChatMessage || function () {};
+  const sendText: (txt: string) => void = window.sendTextToExtension || function () {};
 
   const formulaStr = pendingPrompt!.formula;
   const isWhisper = pendingPrompt!.whisper || false;
@@ -366,12 +346,7 @@ function completePrompt(): void {
   const isSuccessRoll = isSuccessCountRoll(pendingPrompt!);
   const title = pendingPrompt!.title || 'Pixels Dice';
 
-  const message = buildChatMessage(
-    result,
-    formulaDisplay,
-    isSuccessRoll,
-    title
-  );
+  const message = buildChatMessage(result, formulaDisplay, isSuccessRoll, title);
 
   if (isWhisper) {
     postChatMessage(`/w gm ${message}`);
@@ -426,6 +401,30 @@ interface DiceRollNode extends RollBase {
   dice?: RollBase[];
 }
 
+function formatRollPart(roll: { roll: number; valid: boolean; explode?: boolean; success?: boolean }): string {
+  if (!roll.valid) {
+    return `*(${roll.roll})*`;
+  }
+  if (roll.explode) {
+    return `**${roll.roll}!**`;
+  }
+  if (roll.success === true) {
+    return `**${roll.roll}**`;
+  }
+  if (roll.success === false) {
+    return `*${roll.roll}*`;
+  }
+  return `${roll.roll}`;
+}
+
+function collectChildDiceParts(diceNode: DiceRollNode, parts: string[]): void {
+  if (diceNode.dice) {
+    for (const die of diceNode.dice) {
+      collectDiceDisplayParts(die, parts);
+    }
+  }
+}
+
 function collectDiceDisplayParts(node: RollBase | null, parts: string[]): void {
   if (!node) {
     return;
@@ -434,38 +433,14 @@ function collectDiceDisplayParts(node: RollBase | null, parts: string[]): void {
   const diceNode = node as DiceRollNode;
 
   if (node.type === 'die' && diceNode.rolls) {
-    for (const roll of diceNode.rolls!) {
-      if (!roll.valid) {
-        parts.push(`*(${roll.roll})*`);
-      } else if (roll.explode) {
-        parts.push(`**${roll.roll}!**`);
-      } else if (roll.success === true) {
-        parts.push(`**${roll.roll}**`);
-      } else if (roll.success === false) {
-        parts.push(`*${roll.roll}*`);
-      } else {
-        parts.push(`${roll.roll}`);
-      }
+    for (const roll of diceNode.rolls) {
+      parts.push(formatRollPart(roll));
     }
     return;
   }
 
-  if (node.type === 'expressionroll' || node.type === 'diceexpressionroll') {
-    if (diceNode.dice) {
-      for (const die of diceNode.dice) {
-        collectDiceDisplayParts(die, parts);
-      }
-    }
-    return;
-  }
-
-  if (node.type === 'grouproll') {
-    if (diceNode.dice) {
-      for (const die of diceNode.dice) {
-        collectDiceDisplayParts(die, parts);
-      }
-    }
-    return;
+  if (node.type === 'expressionroll' || node.type === 'diceexpressionroll' || node.type === 'grouproll') {
+    collectChildDiceParts(diceNode, parts);
   }
 }
 
@@ -485,24 +460,18 @@ function createOverlayElement(): HTMLElement {
     <div class="pixels-cmd-slots"></div>
     <div class="pixels-cmd-hint">Roll the highlighted dice to fill each slot</div>
   `;
-  overlay
-    .querySelector('.pixels-cmd-cancel')!
-    .addEventListener('click', cancelPrompt);
+  overlay.querySelector('.pixels-cmd-cancel')!.addEventListener('click', cancelPrompt);
   document.body.appendChild(overlay);
   injectOverlayStyles();
   return overlay;
 }
 
 function showPromptOverlay(prompt: PromptData): void {
-  if (!overlayElement) {
-    overlayElement = createOverlayElement();
-  }
+  overlayElement ??= createOverlayElement();
   overlayElement.style.display = 'block';
 
   const titleEl = overlayElement.querySelector('.pixels-cmd-title')!;
-  titleEl.textContent = prompt.whisper
-    ? 'Roll Your Dice (GM Only)'
-    : 'Roll Your Dice';
+  titleEl.textContent = prompt.whisper ? 'Roll Your Dice (GM Only)' : 'Roll Your Dice';
 
   const formulaEl = overlayElement.querySelector('.pixels-cmd-formula')!;
   formulaEl.textContent = getFormulaDisplay(prompt.formula);
@@ -545,12 +514,10 @@ function updateOverlaySlots(prompt: PromptData): void {
 
     if (slot.value !== null) {
       slotDiv.innerHTML =
-        `<span class="slot-value">${slot.value}</span>` +
-        `<span class="slot-type">${typeLabel}${decorator}</span>`;
+        `<span class="slot-value">${slot.value}</span>` + `<span class="slot-type">${typeLabel}${decorator}</span>`;
     } else {
       slotDiv.innerHTML =
-        `<span class="slot-placeholder">${decorator || '?'}</span>` +
-        `<span class="slot-type">${typeLabel}</span>`;
+        `<span class="slot-placeholder">${decorator || '?'}</span>` + `<span class="slot-type">${typeLabel}</span>`;
     }
 
     slotsEl.appendChild(slotDiv);
@@ -562,7 +529,8 @@ function shakeOverlay(): void {
     return;
   }
   overlayElement.classList.remove('shake');
-  void overlayElement.offsetWidth;
+  // Force reflow so the shake animation restarts
+  overlayElement.getBoundingClientRect();
   overlayElement.classList.add('shake');
 }
 
@@ -665,12 +633,12 @@ function interceptCommand(textarea: HTMLTextAreaElement): boolean {
   let formulaStr: string | null | undefined = null;
   let isWhisper = false;
 
-  const gmMatch = text.match(GM_COMMAND_PATTERN);
+  const gmMatch = GM_COMMAND_PATTERN.exec(text);
   if (gmMatch) {
     formulaStr = gmMatch[1];
     isWhisper = true;
   } else {
-    const match = text.match(COMMAND_PATTERN);
+    const match = COMMAND_PATTERN.exec(text);
     if (!match) {
       return false;
     }
@@ -679,8 +647,7 @@ function interceptCommand(textarea: HTMLTextAreaElement): boolean {
 
   if (!formulaStr) {
     textarea.value = '';
-    const postChat: (msg: string) => void =
-      window.postChatMessage || function () {};
+    const postChat: (msg: string) => void = window.postChatMessage || function () {};
     const prefix = isWhisper ? '/gmpixels' : '/pixels';
     postChat(
       `Usage: ${prefix} 2d6+1d8+3 — prompts you to roll physical dice. ` +
@@ -705,13 +672,8 @@ function interceptCommand(textarea: HTMLTextAreaElement): boolean {
   return true;
 }
 
-function processFormula(
-  formulaStr: string,
-  isWhisper: boolean,
-  title?: string
-): void {
-  const postChat: (msg: string) => void =
-    window.postChatMessage || function () {};
+function processFormula(formulaStr: string, isWhisper: boolean, title?: string): void {
+  const postChat: (msg: string) => void = window.postChatMessage || function () {};
 
   const ast = parseFormula(formulaStr);
   if (!ast) {
@@ -731,7 +693,7 @@ function processFormula(
 }
 
 function interceptFormula(formulaStr: string, title?: string): boolean {
-  if (!formulaStr || !formulaStr.trim()) {
+  if (!formulaStr?.trim()) {
     return false;
   }
 
@@ -746,8 +708,7 @@ function interceptFormula(formulaStr: string, title?: string): boolean {
     return true;
   }
 
-  const postChat: (msg: string) => void =
-    window.postChatMessage || function () {};
+  const postChat: (msg: string) => void = window.postChatMessage || function () {};
 
   const ast = parseFormula(trimmed);
   if (!ast) {
@@ -778,14 +739,7 @@ const PixelsCommand = {
   interceptFormula,
 };
 
-export {
-  setupChatInterception,
-  offerRoll,
-  isPromptActive,
-  cancelPrompt,
-  parseFormula,
-  interceptFormula,
-};
+export { setupChatInterception, offerRoll, isPromptActive, cancelPrompt, parseFormula, interceptFormula };
 export default PixelsCommand;
 
 if (typeof window !== 'undefined') {

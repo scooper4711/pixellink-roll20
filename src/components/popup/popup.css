@@ -78,6 +78,7 @@ body {
   color: #cccccc;
   font-size: 13px;
   font-weight: normal;
+  animation: fadeIn 0.3s ease;
 }
 
 .status-text-inline {
@@ -429,10 +430,6 @@ body {
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.status-text {
-  animation: fadeIn 0.3s ease;
 }
 
 /* Responsive adjustments */

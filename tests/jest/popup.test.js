@@ -92,11 +92,9 @@ describe('Popup Theme System', () => {
     });
 
     // Mock chrome.tabs.sendMessage to return light theme
-    mockChrome.tabs.sendMessage.mockImplementation(
-      (tabId, message, callback) => {
-        callback({ theme: 'light' });
-      }
-    );
+    mockChrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
+      callback({ theme: 'light' });
+    });
 
     // Load popup script
     require('../../src/components/popup/popup.js');
@@ -121,11 +119,9 @@ describe('Popup Theme System', () => {
     });
 
     // Mock chrome.tabs.sendMessage to return dark theme
-    mockChrome.tabs.sendMessage.mockImplementation(
-      (tabId, message, callback) => {
-        callback({ theme: 'dark' });
-      }
-    );
+    mockChrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
+      callback({ theme: 'dark' });
+    });
 
     // Load popup script
     require('../../src/components/popup/popup.js');
@@ -145,14 +141,12 @@ describe('Popup Theme System', () => {
     });
 
     // Mock chrome.tabs.sendMessage to fail (content script not available)
-    mockChrome.tabs.sendMessage.mockImplementation(
-      (tabId, message, callback) => {
-        mockChrome.runtime.lastError = {
-          message: 'Content script not available',
-        };
-        callback(null);
-      }
-    );
+    mockChrome.tabs.sendMessage.mockImplementation((tabId, message, callback) => {
+      mockChrome.runtime.lastError = {
+        message: 'Content script not available',
+      };
+      callback(null);
+    });
 
     // Mock chrome.scripting.executeScript to return light theme
     mockChrome.scripting.executeScript.mockImplementation(options => {
@@ -171,11 +165,5 @@ describe('Popup Theme System', () => {
       expect(lightThemeLink).toBeTruthy();
       done();
     }, 100);
-  });
-
-  test('placeholder test to prevent empty test suite error', () => {
-    // This is a placeholder test to prevent Jest from failing
-    // due to empty test suite. Real popup tests should be added here.
-    expect(true).toBe(true);
   });
 });

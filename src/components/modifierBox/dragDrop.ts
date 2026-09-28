@@ -5,19 +5,13 @@
 import { getThemeColors } from '../../utils/themeDetector';
 
 // Functional helpers
-const createElement = (
-  tagName: string,
-  className: string = ''
-): HTMLElement => {
+const createElement = (tagName: string, className: string = ''): HTMLElement => {
   const element = document.createElement(tagName);
   if (className) element.className = className;
   return element;
 };
 
-const setStyle = (
-  styles: Record<string, string>,
-  element: HTMLElement
-): HTMLElement => {
+const setStyle = (styles: Record<string, string>, element: HTMLElement): HTMLElement => {
   Object.entries(styles).forEach(([prop, value]) => {
     element.style.setProperty(prop, value, 'important');
   });
@@ -34,8 +28,7 @@ const removeClass = (className: string, element: HTMLElement): HTMLElement => {
   return element;
 };
 
-const findClosest = (selector: string, element: Element): Element | null =>
-  element.closest(selector);
+const findClosest = (selector: string, element: Element): Element | null => element.closest(selector);
 
 // Factory function to create drag and drop functionality
 export const createRowDragDrop: RowDragDropFactory = (
@@ -58,9 +51,7 @@ export const createRowDragDrop: RowDragDropFactory = (
     return element;
   };
 
-  const updatePlaceholderTheme = (
-    placeholderElement: HTMLElement | null = placeholder
-  ): void => {
+  const updatePlaceholderTheme = (placeholderElement: HTMLElement | null = placeholder): void => {
     if (!placeholderElement) return;
 
     // Get theme colors if available
@@ -158,9 +149,7 @@ export const createRowDragDrop: RowDragDropFactory = (
     const rows = container.querySelectorAll(rowSelector);
 
     // Remove existing placeholder
-    if (placeholder.parentNode) {
-      placeholder.parentNode.removeChild(placeholder);
-    }
+    placeholder.remove();
 
     // Update placeholder theme before showing it
     updatePlaceholderTheme();
@@ -196,7 +185,7 @@ export const createRowDragDrop: RowDragDropFactory = (
   };
 
   const completeDrag = (): void => {
-    if (!draggedElement || !placeholder || !placeholder.parentNode) {
+    if (!draggedElement || !placeholder?.parentNode) {
       cleanup();
       return;
     }
@@ -205,19 +194,11 @@ export const createRowDragDrop: RowDragDropFactory = (
     placeholder.parentNode.insertBefore(draggedElement, placeholder);
 
     // Remove placeholder
-    if (placeholder.parentNode) {
-      placeholder.parentNode.removeChild(placeholder);
-    }
+    placeholder.remove();
 
     // Reindex all rows to maintain correct radio button values
-    if (
-      rowManagerInstance &&
-      typeof rowManagerInstance.reindexRows === 'function'
-    ) {
-      const modifierBox = findClosest(
-        '#pixels-modifier-box',
-        container!
-      ) as HTMLElement | null;
+    if (rowManagerInstance && typeof rowManagerInstance.reindexRows === 'function') {
+      const modifierBox = findClosest('#pixels-modifier-box', container!) as HTMLElement | null;
       if (modifierBox) {
         rowManagerInstance.reindexRows(modifierBox);
 
@@ -231,19 +212,11 @@ export const createRowDragDrop: RowDragDropFactory = (
     cleanup();
   };
 
-  const getDragAfterElement = (
-    containerElement: Element,
-    y: number
-  ): Element | undefined => {
-    const draggableElements = [
-      ...containerElement.querySelectorAll(`${rowSelector}:not(.dragging)`),
-    ];
+  const getDragAfterElement = (containerElement: Element, y: number): Element | undefined => {
+    const draggableElements = [...containerElement.querySelectorAll(`${rowSelector}:not(.dragging)`)];
 
     return draggableElements.reduce(
-      (
-        currentClosest: { offset: number; element: Element | undefined },
-        child: Element
-      ) => {
+      (currentClosest: { offset: number; element: Element | undefined }, child: Element) => {
         const box = child.getBoundingClientRect();
         const offset = y - box.top - box.height / 2;
 
@@ -274,9 +247,7 @@ export const createRowDragDrop: RowDragDropFactory = (
       draggedElement = null;
     }
 
-    if (placeholder?.parentNode) {
-      placeholder.parentNode.removeChild(placeholder);
-    }
+    placeholder?.remove();
 
     _dragHandle = null;
     container = null;

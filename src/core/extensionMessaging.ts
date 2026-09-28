@@ -18,12 +18,9 @@ function getKnownDice(): Promise<StoredKnownDie[]> {
       resolve([]);
       return;
     }
-    chrome.storage.local.get(
-      KNOWN_DICE_KEY,
-      (result: { [key: string]: StoredKnownDie[] }) => {
-        resolve(result[KNOWN_DICE_KEY] || []);
-      }
-    );
+    chrome.storage.local.get(KNOWN_DICE_KEY, (result: { [key: string]: StoredKnownDie[] }) => {
+      resolve(result[KNOWN_DICE_KEY] || []);
+    });
   });
 }
 
@@ -37,19 +34,12 @@ interface ExtensionMessage {
 // Message handler for extension communication
 export const sendMessageToExtension = (data: ExtensionMessage): void => {
   try {
-    if (
-      typeof chrome !== 'undefined' &&
-      chrome.runtime &&
-      chrome.runtime.sendMessage
-    ) {
+    if (typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
       chrome.runtime.sendMessage(data);
     }
   } catch (error) {
     // Silently handle extension context invalidated errors (common when extension reloads)
-    if (
-      (error as Error).message &&
-      (error as Error).message.includes('Extension context invalidated')
-    ) {
+    if ((error as Error).message?.includes('Extension context invalidated')) {
       // Don't log these common extension reload errors
       return;
     }
@@ -62,8 +52,7 @@ export const sendTextToExtension = (txt: string): void => {
 };
 
 export const sendStatusToExtension = async (): Promise<void> => {
-  const pixels =
-    typeof window.getPixels === 'function' ? window.getPixels() : [];
+  const pixels = typeof window.getPixels === 'function' ? window.getPixels() : [];
 
   // Verify actual GATT state for each pixel, not just cached isConnected
   const connectedPixels = pixels.filter(p => {
@@ -88,9 +77,7 @@ export const sendStatusToExtension = async (): Promise<void> => {
   if (totalToShow === 0) {
     sendTextToExtension('No Pixels connected');
   } else {
-    sendTextToExtension(
-      `${connectedPixels.length}/${totalToShow} Pixels connected`
-    );
+    sendTextToExtension(`${connectedPixels.length}/${totalToShow} Pixels connected`);
   }
 
   // Update the extension icon badge with the connected count
@@ -102,61 +89,53 @@ export const sendStatusToExtension = async (): Promise<void> => {
 
 export const setupMessageListener = (): void => {
   // Only set up message listener if in extension context
-  if (
-    typeof chrome !== 'undefined' &&
-    chrome.runtime &&
-    chrome.runtime.onMessage
-  ) {
+  if (typeof chrome !== 'undefined' && chrome.runtime?.onMessage) {
     try {
-      chrome.runtime.onMessage.addListener(
-        (msg: Record<string, unknown>, _sender, _sendResponse) => {
-          // Handle null/undefined messages gracefully
-          if (!msg || typeof msg !== 'object') {
-            console.log(`Received invalid message: ${JSON.stringify(msg)}`);
-            return;
-          }
-
-          switch (msg.action) {
-            case 'getStatus':
-              sendStatusToExtension();
-              break;
-
-            case 'connect':
-              try {
-                if (window.connectToPixel) {
-                  window.connectToPixel();
-                }
-              } catch (error) {
-                console.log('Error connecting to pixel:', error);
-              }
-              break;
-
-            case 'disconnect':
-              try {
-                if (window.disconnectAllPixels) {
-                  window.disconnectAllPixels();
-                }
-              } catch (error) {
-                console.log('Error disconnecting pixels:', error);
-              }
-              break;
-
-            default:
-              break;
-          }
+      chrome.runtime.onMessage.addListener((msg: Record<string, unknown>, _sender, _sendResponse) => {
+        // Handle null/undefined messages gracefully
+        if (!msg || typeof msg !== 'object') {
+          console.log(`Received invalid message: ${JSON.stringify(msg)}`);
+          return;
         }
-      );
+
+        switch (msg.action) {
+          case 'getStatus':
+            sendStatusToExtension().catch(error => {
+              console.log('Error sending status to extension:', error);
+            });
+            break;
+
+          case 'connect':
+            try {
+              if (window.connectToPixel) {
+                window.connectToPixel();
+              }
+            } catch (error) {
+              console.log('Error connecting to pixel:', error);
+            }
+            break;
+
+          case 'disconnect':
+            try {
+              if (window.disconnectAllPixels) {
+                window.disconnectAllPixels();
+              }
+            } catch (error) {
+              console.log('Error disconnecting pixels:', error);
+            }
+            break;
+
+          default:
+            break;
+        }
+      });
     } catch (error) {
-      console.log(
-        'Could not set up extension message listener:',
-        (error as Error).message
-      );
+      console.log('Could not set up extension message listener:', (error as Error).message);
     }
   }
 };
 
 // Legacy global exports for backward compatibility
 if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>).sendMessageToExtension =
-    sendMessageToExtension;
+  (window as unknown as Record<string, unknown>).sendMessageToExtension = sendMessageToExtension;
 }

@@ -11,9 +11,7 @@ export function setupMinimizeControls(modifierBox: HTMLElement): void {
     return;
   }
 
-  const minimizeBtn = modifierBox.querySelector(
-    '.pixels-minimize'
-  ) as HTMLButtonElement | null;
+  const minimizeBtn = modifierBox.querySelector('.pixels-minimize') as HTMLButtonElement | null;
   if (!minimizeBtn) {
     console.error('Minimize button not found!');
     return;
@@ -39,7 +37,12 @@ function persistMinimizedState(minimized: boolean): void {
       window.PixelsProfileStorage &&
       typeof window.PixelsProfileStorage.setMinimized === 'function'
     ) {
-      window.PixelsProfileStorage.setMinimized(minimized);
+      const result = window.PixelsProfileStorage.setMinimized(minimized);
+      if (typeof result?.catch === 'function') {
+        result.catch((error: Error) => {
+          console.error('Error persisting minimized state:', error);
+        });
+      }
     }
   } catch (error) {
     console.error('Error persisting minimized state:', error);
@@ -48,18 +51,13 @@ function persistMinimizedState(minimized: boolean): void {
 
 // Apply the minimized/restored visual state without persisting. Used both by
 // the toggle handler and by the restore-on-load path in the initializer.
-export function applyMinimizedState(
-  modifierBox: HTMLElement,
-  minimized: boolean
-): void {
+export function applyMinimizedState(modifierBox: HTMLElement, minimized: boolean): void {
   if (!modifierBox) {
     console.error('applyMinimizedState: modifierBox is required');
     return;
   }
 
-  const minimizeBtn = modifierBox.querySelector(
-    '.pixels-minimize'
-  ) as HTMLButtonElement | null;
+  const minimizeBtn = modifierBox.querySelector('.pixels-minimize') as HTMLButtonElement | null;
   if (!minimizeBtn) {
     console.error('Minimize button not found!');
     return;
@@ -74,9 +72,7 @@ export function applyMinimizedState(
 
 // Read the persisted minimized flag and apply it to the box. Async because the
 // storage wrapper is Promise-based.
-export async function restoreMinimizedState(
-  modifierBox: HTMLElement
-): Promise<void> {
+export async function restoreMinimizedState(modifierBox: HTMLElement): Promise<void> {
   if (!modifierBox) {
     return;
   }
@@ -96,13 +92,10 @@ export async function restoreMinimizedState(
   }
 }
 
-function minimizeModifierBox(
-  modifierBox: HTMLElement,
-  minimizeBtn: HTMLButtonElement
-): void {
+function minimizeModifierBox(modifierBox: HTMLElement, minimizeBtn: HTMLButtonElement): void {
   const rect = modifierBox.getBoundingClientRect();
-  modifierBox.setAttribute('data-original-width', String(rect.width));
-  modifierBox.setAttribute('data-original-height', String(rect.height));
+  modifierBox.dataset.originalWidth = String(rect.width);
+  modifierBox.dataset.originalHeight = String(rect.height);
 
   modifierBox.classList.add('minimized');
   modifierBox.style.setProperty('width', '200px', 'important');
@@ -115,12 +108,9 @@ function minimizeModifierBox(
 }
 
 // Restore the modifier box from minimized state
-function restoreModifierBox(
-  modifierBox: HTMLElement,
-  minimizeBtn: HTMLButtonElement
-): void {
-  const originalWidth = modifierBox.getAttribute('data-original-width');
-  const originalHeight = modifierBox.getAttribute('data-original-height');
+function restoreModifierBox(modifierBox: HTMLElement, minimizeBtn: HTMLButtonElement): void {
+  const originalWidth = modifierBox.dataset.originalWidth;
+  const originalHeight = modifierBox.dataset.originalHeight;
 
   modifierBox.classList.remove('minimized');
 
@@ -137,10 +127,7 @@ function restoreModifierBox(
   minimizeBtn.title = 'Minimize';
 }
 
-export function setupClearAllControls(
-  modifierBox: HTMLElement,
-  clearAllCallback: () => void
-): void {
+export function setupClearAllControls(modifierBox: HTMLElement, clearAllCallback: () => void): void {
   if (!modifierBox) {
     console.error('setupClearAllControls: modifierBox is required');
     return;
@@ -151,9 +138,7 @@ export function setupClearAllControls(
     return;
   }
 
-  const clearAllBtn = modifierBox.querySelector(
-    '.clear-all-btn'
-  ) as HTMLButtonElement | null;
+  const clearAllBtn = modifierBox.querySelector('.clear-all-btn') as HTMLButtonElement | null;
   if (!clearAllBtn) {
     console.error('Clear All button not found!');
     return;
