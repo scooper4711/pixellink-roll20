@@ -11,36 +11,34 @@ interface DragOffset {
   initialHeight: number;
 }
 
-function setupDragFunctionality(modifierBox: HTMLElement): void {
-  if (!modifierBox) {
-    console.error('setupDragFunctionality: modifierBox is required');
-    return;
-  }
+interface OriginalDimensions {
+  width: number;
+  height: number | null;
+}
 
-  let isDragging = false;
-  let isResizing = false;
-  const dragOffset: DragOffset = {
-    x: 0,
-    y: 0,
-    initialWidth: 0,
-    initialHeight: 0,
+interface DragSession {
+  box: HTMLElement;
+  isDragging: boolean;
+  isResizing: boolean;
+  offset: DragOffset;
+  original: OriginalDimensions;
+  onMove: (e: MouseEvent) => void;
+  onUp: () => void;
+}
+
+function createDragSession(box: HTMLElement): DragSession {
+  return {
+    box,
+    isDragging: false,
+    isResizing: false,
+    offset: { x: 0, y: 0, initialWidth: 0, initialHeight: 0 },
+    original: { width: 400, height: null },
+    onMove: () => {},
+    onUp: () => {},
   };
+}
 
-  // Store original dimensions for restore functionality
-  const originalDimensions: { width: number; height: number | null } = {
-    width: 400,
-    height: null, // Will be set after content is loaded
-  };
-
-  const header = modifierBox.querySelector(
-    '.pixels-header'
-  ) as HTMLElement | null;
-  if (!header) {
-    console.error('setupDragFunctionality: header not found');
-    return;
-  }
-
-  // Add resize handle
+function createResizeHandleElement(): HTMLElement {
   const resizeHandle = document.createElement('div');
   resizeHandle.className = 'pixels-resize-handle';
   resizeHandle.style.cssText = `
@@ -54,158 +52,175 @@ function setupDragFunctionality(modifierBox: HTMLElement): void {
             border-bottom-right-radius: 8px !important;
             z-index: 10 !important;
         `;
-  modifierBox.appendChild(resizeHandle);
+  return resizeHandle;
+}
 
-  // Add double-click to restore original size
-  resizeHandle.addEventListener('dblclick', (e: MouseEvent) => {
-    modifierBox.style.setProperty(
-      'width',
-      `${originalDimensions.width}px`,
-      'important'
-    );
-    if (originalDimensions.height) {
-      modifierBox.style.setProperty(
-        'height',
-        `${originalDimensions.height}px`,
-        'important'
-      );
-    } else {
-      modifierBox.style.setProperty('height', 'auto', 'important');
-    }
-    e.preventDefault();
-    e.stopPropagation();
-  });
-
-  // Ensure the modifier box maintains fixed positioning for dragging
-  modifierBox.style.position = 'fixed';
-
-  // Set initial dimensions and store them
-  modifierBox.style.setProperty(
-    'width',
-    `${originalDimensions.width}px`,
-    'important'
-  );
-
-  // Set initial position if not already set
-  if (!modifierBox.style.left || modifierBox.style.left === 'auto') {
-    modifierBox.style.left = '20px';
+function restoreOriginalSize(box: HTMLElement, original: OriginalDimensions, e: MouseEvent): void {
+  box.style.setProperty('width', `${original.width}px`, 'important');
+  if (original.height) {
+    box.style.setProperty('height', `${original.height}px`, 'important');
+  } else {
+    box.style.setProperty('height', 'auto', 'important');
   }
-  if (!modifierBox.style.top || modifierBox.style.top === 'auto') {
-    modifierBox.style.top = '20px';
-  }
-  modifierBox.style.right = 'auto';
-  modifierBox.style.bottom = 'auto';
+  e.preventDefault();
+  e.stopPropagation();
+}
 
-  // Store original height after content is rendered
+function applyInitialLayout(box: HTMLElement, original: OriginalDimensions): void {
+  box.style.position = 'fixed';
+  box.style.setProperty('width', `${original.width}px`, 'important');
+  if (!box.style.left || box.style.left === 'auto') {
+    box.style.left = '20px';
+  }
+  if (!box.style.top || box.style.top === 'auto') {
+    box.style.top = '20px';
+  }
+  box.style.right = 'auto';
+  box.style.bottom = 'auto';
+}
+
+function scheduleHeightCapture(box: HTMLElement, original: OriginalDimensions): void {
   setTimeout(() => {
-    if (!originalDimensions.height) {
-      const rect = modifierBox.getBoundingClientRect();
-      originalDimensions.height = rect.height;
+    if (!original.height) {
+      const rect = box.getBoundingClientRect();
+      original.height = rect.height;
     }
   }, 100);
+}
 
-  // Drag functionality
+function shouldIgnoreHeaderTarget(target: HTMLElement, resizeHandle: HTMLElement): boolean {
+  if (target.tagName === 'BUTTON') {
+    return true;
+  }
+  if (
+    target.classList.contains('pixels-close') ||
+    target.classList.contains('pixels-minimize') ||
+    target.classList.contains('add-modifier-btn')
+  ) {
+    return true;
+  }
+  if (target === resizeHandle || target.closest('button')) {
+    return true;
+  }
+  return false;
+}
+
+function startHeaderDrag(session: DragSession, e: MouseEvent): void {
+  session.isDragging = true;
+  const rect = session.box.getBoundingClientRect();
+  session.offset.x = e.clientX - rect.left;
+  session.offset.y = e.clientY - rect.top;
+}
+
+function startResize(session: DragSession, e: MouseEvent): void {
+  session.isResizing = true;
+  const rect = session.box.getBoundingClientRect();
+  session.offset.x = e.clientX;
+  session.offset.y = e.clientY;
+  session.offset.initialWidth = rect.width;
+  session.offset.initialHeight = rect.height;
+}
+
+function handleDragMove(session: DragSession, e: MouseEvent): void {
+  const newLeft = e.clientX - session.offset.x;
+  const newTop = e.clientY - session.offset.y;
+  const maxLeft = window.innerWidth - 100;
+  const maxTop = window.innerHeight - 50;
+  session.box.style.left = `${Math.max(0, Math.min(newLeft, maxLeft))}px`;
+  session.box.style.top = `${Math.max(0, Math.min(newTop, maxTop))}px`;
+}
+
+function applyConstrainedSize(session: DragSession, newWidth: number, newHeight: number): void {
+  const minWidth = 250;
+  const minHeight = 120;
+  const maxWidth = Math.min(800, window.innerWidth * 0.8);
+  const maxHeight = Math.min(600, window.innerHeight * 0.8);
+  const constrainedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+  const constrainedHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+  session.box.style.setProperty('width', `${constrainedWidth}px`, 'important');
+  session.box.style.setProperty('height', `${constrainedHeight}px`, 'important');
+}
+
+function keepBoxOnScreen(session: DragSession): void {
+  const rect = session.box.getBoundingClientRect();
+  if (rect.right > window.innerWidth) {
+    session.box.style.left = `${window.innerWidth - rect.width - 10}px`;
+  }
+  if (rect.bottom > window.innerHeight) {
+    session.box.style.top = `${window.innerHeight - rect.height - 10}px`;
+  }
+}
+
+function handleResizeMove(session: DragSession, e: MouseEvent): void {
+  const deltaX = e.clientX - session.offset.x;
+  const deltaY = e.clientY - session.offset.y;
+  const newWidth = Math.max(session.offset.initialWidth + deltaX, 0);
+  const newHeight = Math.max(session.offset.initialHeight + deltaY, 0);
+  applyConstrainedSize(session, newWidth, newHeight);
+  keepBoxOnScreen(session);
+}
+
+function handleSessionMouseMove(session: DragSession, e: MouseEvent): void {
+  if (session.isDragging) {
+    handleDragMove(session, e);
+  } else if (session.isResizing) {
+    handleResizeMove(session, e);
+  }
+}
+
+function endSession(session: DragSession): void {
+  session.isDragging = false;
+  session.isResizing = false;
+  document.removeEventListener('mousemove', session.onMove);
+  document.removeEventListener('mouseup', session.onUp);
+}
+
+function bindHeaderDrag(header: HTMLElement, resizeHandle: HTMLElement, session: DragSession): void {
   header.addEventListener('mousedown', (e: MouseEvent) => {
     const target = e.target as HTMLElement;
-    // Skip if clicking on buttons or other interactive elements
-    if (
-      target.tagName === 'BUTTON' ||
-      target.classList.contains('pixels-close') ||
-      target.classList.contains('pixels-minimize') ||
-      target.classList.contains('add-modifier-btn') ||
-      target === resizeHandle ||
-      target.closest('button')
-    ) {
+    if (shouldIgnoreHeaderTarget(target, resizeHandle)) {
       return;
     }
-
-    isDragging = true;
-    const rect = modifierBox.getBoundingClientRect();
-    dragOffset.x = e.clientX - rect.left;
-    dragOffset.y = e.clientY - rect.top;
-
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    startHeaderDrag(session, e);
+    document.addEventListener('mousemove', session.onMove);
+    document.addEventListener('mouseup', session.onUp);
     e.preventDefault();
     e.stopPropagation();
   });
+}
 
-  // Resize functionality
+function bindResizeDrag(resizeHandle: HTMLElement, session: DragSession): void {
   resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
-    isResizing = true;
-    const rect = modifierBox.getBoundingClientRect();
-    // Store initial dimensions and mouse position
-    dragOffset.x = e.clientX;
-    dragOffset.y = e.clientY;
-    dragOffset.initialWidth = rect.width;
-    dragOffset.initialHeight = rect.height;
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    startResize(session, e);
+    document.addEventListener('mousemove', session.onMove);
+    document.addEventListener('mouseup', session.onUp);
     e.preventDefault();
     e.stopPropagation();
   });
+}
 
-  function onMouseMove(e: MouseEvent): void {
-    if (isDragging) {
-      const newLeft = e.clientX - dragOffset.x;
-      const newTop = e.clientY - dragOffset.y;
-
-      // Keep within viewport bounds
-      const maxLeft = window.innerWidth - 100; // Keep at least 100px visible
-      const maxTop = window.innerHeight - 50; // Keep at least 50px visible
-
-      modifierBox.style.left = `${Math.max(0, Math.min(newLeft, maxLeft))}px`;
-      modifierBox.style.top = `${Math.max(0, Math.min(newTop, maxTop))}px`;
-    } else if (isResizing) {
-      // Calculate size change based on mouse movement
-      const deltaX = e.clientX - dragOffset.x;
-      const deltaY = e.clientY - dragOffset.y;
-
-      const newWidth = Math.max(dragOffset.initialWidth + deltaX, 0);
-      const newHeight = Math.max(dragOffset.initialHeight + deltaY, 0);
-
-      // Set minimum and maximum dimensions
-      const minWidth = 250;
-      const minHeight = 120; // Reduced minimum height to allow smaller boxes
-      const maxWidth = Math.min(800, window.innerWidth * 0.8);
-      const maxHeight = Math.min(600, window.innerHeight * 0.8);
-
-      // Apply width constraints and update
-      const constrainedWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
-      const constrainedHeight = Math.max(
-        minHeight,
-        Math.min(newHeight, maxHeight)
-      );
-
-      // Use setProperty with important flag to override CSS !important rules
-      modifierBox.style.setProperty(
-        'width',
-        `${constrainedWidth}px`,
-        'important'
-      );
-      modifierBox.style.setProperty(
-        'height',
-        `${constrainedHeight}px`,
-        'important'
-      );
-
-      // Prevent the box from going off-screen during resize
-      const rect = modifierBox.getBoundingClientRect();
-      if (rect.right > window.innerWidth) {
-        modifierBox.style.left = `${window.innerWidth - rect.width - 10}px`;
-      }
-      if (rect.bottom > window.innerHeight) {
-        modifierBox.style.top = `${window.innerHeight - rect.height - 10}px`;
-      }
-    }
+function setupDragFunctionality(modifierBox: HTMLElement): void {
+  if (!modifierBox) {
+    console.error('setupDragFunctionality: modifierBox is required');
+    return;
   }
-
-  function onMouseUp(): void {
-    isDragging = false;
-    isResizing = false;
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
+  const header = modifierBox.querySelector('.pixels-header') as HTMLElement | null;
+  if (!header) {
+    console.error('setupDragFunctionality: header not found');
+    return;
   }
+  const session = createDragSession(modifierBox);
+  session.onMove = (e: MouseEvent) => handleSessionMouseMove(session, e);
+  session.onUp = () => endSession(session);
+  const resizeHandle = createResizeHandleElement();
+  modifierBox.appendChild(resizeHandle);
+  resizeHandle.addEventListener('dblclick', (e: MouseEvent) => {
+    restoreOriginalSize(modifierBox, session.original, e);
+  });
+  applyInitialLayout(modifierBox, session.original);
+  scheduleHeightCapture(modifierBox, session.original);
+  bindHeaderDrag(header, resizeHandle, session);
+  bindResizeDrag(resizeHandle, session);
 }
 
 // Export function

@@ -27,17 +27,15 @@ export const isRoll20PopupWindow = (): boolean => {
     const isPopup = checkUrlForPopup(url);
 
     if (isPopup) {
-      console.log(
-        'Detected Roll20 popup window - modifier box will not be shown'
-      );
-      console.log('URL:', url);
+      console.warn('Detected Roll20 popup window - modifier box will not be shown');
+      console.warn('URL:', url);
     } else {
-      console.log('Main Roll20 page detected - modifier box will be shown');
+      console.warn('Main Roll20 page detected - modifier box will be shown');
     }
 
     return isPopup;
   } catch (error) {
-    console.log('Error detecting popup window:', error);
+    console.error('Error detecting popup window:', error);
     return false;
   }
 };

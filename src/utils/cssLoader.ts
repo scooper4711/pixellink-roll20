@@ -14,7 +14,7 @@ export const loadCSS = (cssPath: string, id: string): Promise<void> => {
   return new Promise((resolve, reject) => {
     // Check if already loaded
     if (loadedCSS.has(id)) {
-      console.log(`CSS already loaded: ${id}`);
+      console.warn(`CSS already loaded: ${id}`);
       resolve();
       return;
     }
@@ -43,7 +43,7 @@ export const loadCSS = (cssPath: string, id: string): Promise<void> => {
         document.head.appendChild(style);
 
         loadedCSS.add(id);
-        console.log(`CSS loaded successfully: ${id}`);
+        console.warn(`CSS loaded successfully: ${id}`);
         resolve();
       })
       .catch(error => {
@@ -61,9 +61,7 @@ interface CSSFileDescriptor {
 /**
  * Load multiple CSS files
  */
-export const loadMultipleCSS = (
-  cssFiles: CSSFileDescriptor[]
-): Promise<void[]> => {
+export const loadMultipleCSS = (cssFiles: CSSFileDescriptor[]): Promise<void[]> => {
   const promises = cssFiles.map(({ path, id }) => loadCSS(path, id));
   return Promise.all(promises);
 };
@@ -76,7 +74,7 @@ export const removeCSS = (id: string): void => {
   if (element) {
     element.remove();
     loadedCSS.delete(id);
-    console.log(`CSS removed: ${id}`);
+    console.warn(`CSS removed: ${id}`);
   }
 };
 
@@ -102,4 +100,4 @@ if (typeof window !== 'undefined') {
   window.CSSLoader = CSSLoader;
 }
 
-console.log('CSSLoader utility initialized');
+console.warn('CSSLoader utility initialized');

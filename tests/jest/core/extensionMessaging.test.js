@@ -82,7 +82,7 @@ describe('extensionMessaging', () => {
         throw new Error('Extension context invalidated.');
       });
       expect(() => messaging.sendMessageToExtension({ action: 'showText' })).not.toThrow();
-      expect(console.log).not.toHaveBeenCalledWith('Could not send message to extension:', expect.anything());
+      expect(console.warn).not.toHaveBeenCalledWith('Could not send message to extension:', expect.anything());
     });
 
     test('logs other send errors', () => {
@@ -91,7 +91,7 @@ describe('extensionMessaging', () => {
         throw err;
       });
       messaging.sendMessageToExtension({ action: 'showText' });
-      expect(console.log).toHaveBeenCalledWith('Could not send message to extension:', err);
+      expect(console.warn).toHaveBeenCalledWith('Could not send message to extension:', err);
     });
 
     test('sendTextToExtension wraps text with showText action', () => {
@@ -228,7 +228,7 @@ describe('extensionMessaging', () => {
       messaging.setupMessageListener();
       onMessageListener({ action: 'getStatus' }, {}, jest.fn());
       await flush();
-      expect(console.log).toHaveBeenCalledWith('Error sending status to extension:', expect.any(Error));
+      expect(console.warn).toHaveBeenCalledWith('Error sending status to extension:', expect.any(Error));
     });
 
     test('connect calls window.connectToPixel', () => {
@@ -244,7 +244,7 @@ describe('extensionMessaging', () => {
       });
       messaging.setupMessageListener();
       onMessageListener({ action: 'connect' }, {}, jest.fn());
-      expect(console.log).toHaveBeenCalledWith('Error connecting to pixel:', expect.any(Error));
+      expect(console.warn).toHaveBeenCalledWith('Error connecting to pixel:', expect.any(Error));
     });
 
     test('connect is a no-op when window.connectToPixel missing', () => {
@@ -265,7 +265,7 @@ describe('extensionMessaging', () => {
       });
       messaging.setupMessageListener();
       onMessageListener({ action: 'disconnect' }, {}, jest.fn());
-      expect(console.log).toHaveBeenCalledWith('Error disconnecting pixels:', expect.any(Error));
+      expect(console.warn).toHaveBeenCalledWith('Error disconnecting pixels:', expect.any(Error));
     });
 
     test('disconnect is a no-op when window.disconnectAllPixels missing', () => {
@@ -282,7 +282,7 @@ describe('extensionMessaging', () => {
     test.each([[null], [undefined], ['just-a-string'], [42]])('invalid message %p is logged gracefully', message => {
       messaging.setupMessageListener();
       onMessageListener(message, {}, jest.fn());
-      expect(console.log).toHaveBeenCalledWith(`Received invalid message: ${JSON.stringify(message)}`);
+      expect(console.warn).toHaveBeenCalledWith(`Received invalid message: ${JSON.stringify(message)}`);
     });
 
     test('logs when addListener itself throws', () => {
@@ -290,7 +290,7 @@ describe('extensionMessaging', () => {
         throw new Error('no listener');
       });
       messaging.setupMessageListener();
-      expect(console.log).toHaveBeenCalledWith('Could not set up extension message listener:', 'no listener');
+      expect(console.warn).toHaveBeenCalledWith('Could not set up extension message listener:', 'no listener');
     });
 
     test('does nothing when not in extension context', () => {

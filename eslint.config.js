@@ -45,14 +45,25 @@ module.exports = [
       'no-redeclare': 'off', // TypeScript handles interface merging
       // TypeScript-specific rules
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
         },
       ],
+      '@typescript-eslint/no-explicit-any': 'off',
       'prefer-const': 'warn',
       'no-var': 'error',
+      // Ported from demiplane-pf2e: hard complexity/file-size limits
+      complexity: ['error', { max: 15 }],
+      'max-lines': ['error', { max: 500, skipBlankLines: true, skipComments: true }],
+      // Soft limits (warnings)
+      'max-lines-per-function': ['warn', { max: 50, skipBlankLines: true, skipComments: true }],
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      // NOTE: demiplane-pf2e also bans `as never` / `as unknown as` via
+      // no-restricted-syntax, but those messages route through Foundry/PF2e
+      // typed seams that do not exist in this repo, so they were not ported.
     },
   },
   {

@@ -3,7 +3,7 @@
 import { DiceManager, Pixel } from '@scooper4711/pixels-ble';
 import { ChromeStorageAdapter } from '../../utils/ChromeStorageAdapter';
 
-const log = window.log || console.log;
+const log = window.log || console.warn;
 const postChatMessage: (message: string) => void = window.postChatMessage || function () {};
 const sendTextToExtension: (txt: string) => void = window.sendTextToExtension || function () {};
 

@@ -173,7 +173,7 @@ describe('roll20 content script', () => {
         },
       });
       loadContentScript();
-      expect(console.log).toHaveBeenCalledWith('Could not set up extension message listener:', expect.anything());
+      expect(console.warn).toHaveBeenCalledWith('Could not set up extension message listener:', expect.anything());
     });
 
     test('starts on DOMContentLoaded while document is loading', () => {

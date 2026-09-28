@@ -138,9 +138,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
     });
 
     test('should set up message listener', () => {
-      expect(mockChrome.runtime.onMessage.addListener).toHaveBeenCalledWith(
-        expect.any(Function)
-      );
+      expect(mockChrome.runtime.onMessage.addListener).toHaveBeenCalledWith(expect.any(Function));
       expect(mockMessageListener).toBeDefined();
     });
 
@@ -152,21 +150,13 @@ describe('Roll20.js - Comprehensive Tests', () => {
 
     test('should handle setModifier message', () => {
       expect(() => {
-        mockMessageListener(
-          { action: 'setModifier', modifier: '5' },
-          null,
-          jest.fn()
-        );
+        mockMessageListener({ action: 'setModifier', modifier: '5' }, null, jest.fn());
       }).not.toThrow();
     });
 
     test('should handle setModifier with undefined value', () => {
       expect(() => {
-        mockMessageListener(
-          { action: 'setModifier', modifier: undefined },
-          null,
-          jest.fn()
-        );
+        mockMessageListener({ action: 'setModifier', modifier: undefined }, null, jest.fn());
       }).not.toThrow();
     });
 
@@ -308,10 +298,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
       }).not.toThrow();
 
       // Should not log "Extension context invalidated" errors - they are handled silently
-      expect(console.log).not.toHaveBeenCalledWith(
-        'Could not send message to extension:',
-        expect.any(Error)
-      );
+      expect(console.warn).not.toHaveBeenCalledWith('Could not send message to extension:', expect.any(Error));
     });
 
     test('should log other sendMessage errors', () => {
@@ -323,10 +310,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.sendMessageToExtension({ action: 'test' });
       }).not.toThrow();
 
-      expect(console.log).toHaveBeenCalledWith(
-        'Could not send message to extension:',
-        expect.any(Error)
-      );
+      expect(console.warn).toHaveBeenCalledWith('Could not send message to extension:', expect.any(Error));
     });
 
     test('should handle missing Chrome API', () => {
@@ -403,11 +387,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
     test('should handle missing DOM elements', () => {
       // Mock the DOM functions to return null (already set up in beforeEach)
       expect(() => {
-        mockMessageListener(
-          { action: 'setModifier', modifier: '3' },
-          null,
-          jest.fn()
-        );
+        mockMessageListener({ action: 'setModifier', modifier: '3' }, null, jest.fn());
       }).not.toThrow();
     });
 
@@ -419,11 +399,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
       });
 
       expect(() => {
-        mockMessageListener(
-          { action: 'setModifier', modifier: '3' },
-          null,
-          jest.fn()
-        );
+        mockMessageListener({ action: 'setModifier', modifier: '3' }, null, jest.fn());
       }).not.toThrow();
 
       // Restore original
@@ -449,9 +425,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
 
         // Test the visibility check logic directly
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         expect(isModifierBoxVisible).toBe(true);
         expect(global.window.ModifierBox.isVisible).toHaveBeenCalled();
@@ -464,9 +438,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         };
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         expect(isModifierBoxVisible).toBe(false);
         expect(global.window.ModifierBox.isVisible).toHaveBeenCalled();
@@ -476,9 +448,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.ModifierBox = undefined;
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         expect(isModifierBoxVisible).toBeFalsy(); // undefined is falsy
       });
@@ -490,9 +460,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         };
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         expect(isModifierBoxVisible).toBeFalsy(); // undefined is falsy
       });
@@ -509,9 +477,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         // The actual logic in the modular roll20.js system doesn't catch errors, so the error will propagate
         expect(() => {
           isModifierBoxVisible =
-            global.window.ModifierBox &&
-            global.window.ModifierBox.isVisible &&
-            global.window.ModifierBox.isVisible();
+            global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
         }).toThrow('Visibility check failed');
       });
     });
@@ -525,14 +491,10 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.pixelsModifier = '5';
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         const diceValue = 4; // Face 3 = dice shows 4
-        const modifier = isModifierBoxVisible
-          ? parseInt(global.window.pixelsModifier) || 0
-          : 0;
+        const modifier = isModifierBoxVisible ? parseInt(global.window.pixelsModifier) || 0 : 0;
         const result = diceValue + modifier;
 
         expect(modifier).toBe(5);
@@ -547,14 +509,10 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.pixelsModifier = '5'; // Should be ignored
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         const diceValue = 4; // Face 3 = dice shows 4
-        const modifier = isModifierBoxVisible
-          ? parseInt(global.window.pixelsModifier) || 0
-          : 0;
+        const modifier = isModifierBoxVisible ? parseInt(global.window.pixelsModifier) || 0 : 0;
         const result = diceValue + modifier;
 
         expect(modifier).toBe(0);
@@ -566,14 +524,10 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.pixelsModifier = '5'; // Should be ignored
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         const diceValue = 6;
-        const modifier = isModifierBoxVisible
-          ? parseInt(global.window.pixelsModifier) || 0
-          : 0;
+        const modifier = isModifierBoxVisible ? parseInt(global.window.pixelsModifier) || 0 : 0;
         const result = diceValue + modifier;
 
         expect(modifier).toBe(0);
@@ -588,14 +542,10 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.pixelsModifier = 'invalid';
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         const diceValue = 3;
-        const modifier = isModifierBoxVisible
-          ? parseInt(global.window.pixelsModifier) || 0
-          : 0;
+        const modifier = isModifierBoxVisible ? parseInt(global.window.pixelsModifier) || 0 : 0;
         const result = diceValue + modifier;
 
         expect(modifier).toBe(0); // Invalid input defaults to 0
@@ -610,14 +560,10 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.pixelsModifier = '-3';
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         const diceValue = 5;
-        const modifier = isModifierBoxVisible
-          ? parseInt(global.window.pixelsModifier) || 0
-          : 0;
+        const modifier = isModifierBoxVisible ? parseInt(global.window.pixelsModifier) || 0 : 0;
         const result = diceValue + modifier;
 
         expect(modifier).toBe(-3);
@@ -632,14 +578,10 @@ describe('Roll20.js - Comprehensive Tests', () => {
         global.window.pixelsModifier = '0';
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         const diceValue = 4;
-        const modifier = isModifierBoxVisible
-          ? parseInt(global.window.pixelsModifier) || 0
-          : 0;
+        const modifier = isModifierBoxVisible ? parseInt(global.window.pixelsModifier) || 0 : 0;
         const result = diceValue + modifier;
 
         expect(modifier).toBe(0);
@@ -655,9 +597,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         };
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         // Simulate the sync logic from the modular roll20.js system
         if (
@@ -678,9 +618,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         };
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         // Simulate the sync logic from the modular roll20.js system
         if (
@@ -701,9 +639,7 @@ describe('Roll20.js - Comprehensive Tests', () => {
         };
 
         const isModifierBoxVisible =
-          global.window.ModifierBox &&
-          global.window.ModifierBox.isVisible &&
-          global.window.ModifierBox.isVisible();
+          global.window.ModifierBox && global.window.ModifierBox.isVisible && global.window.ModifierBox.isVisible();
 
         expect(() => {
           if (
@@ -725,68 +661,28 @@ describe('Roll20.js - Comprehensive Tests', () => {
 
     describe('checkUrlForPopup (pure function)', () => {
       test('should detect journal popout URLs', () => {
-        expect(
-          global.window.checkUrlForPopup('https://app.roll20.net/editor/popout')
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/editor/popout/123'
-          )
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/journal/popout'
-          )
-        ).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/editor/popout')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/editor/popout/123')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/journal/popout')).toBe(true);
       });
 
       test('should detect character sheet popout URLs', () => {
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/editor/character/123?popout=true'
-          )
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/something?popout=true&other=value'
-          )
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/path?foo=bar&popout=true'
-          )
-        ).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/editor/character/123?popout=true')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/something?popout=true&other=value')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/path?foo=bar&popout=true')).toBe(true);
       });
 
       test('should handle case insensitive matching', () => {
-        expect(
-          global.window.checkUrlForPopup('https://app.roll20.net/editor/POPOUT')
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/something?POPOUT=TRUE'
-          )
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/something?Popout=True'
-          )
-        ).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/editor/POPOUT')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/something?POPOUT=TRUE')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/something?Popout=True')).toBe(true);
       });
 
       test('should NOT detect main Roll20 pages', () => {
-        expect(
-          global.window.checkUrlForPopup('https://app.roll20.net/editor/123')
-        ).toBe(false);
-        expect(
-          global.window.checkUrlForPopup('https://app.roll20.net/campaigns/456')
-        ).toBe(false);
-        expect(
-          global.window.checkUrlForPopup('https://app.roll20.net/dashboard')
-        ).toBe(false);
-        expect(global.window.checkUrlForPopup('https://app.roll20.net/')).toBe(
-          false
-        );
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/editor/123')).toBe(false);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/campaigns/456')).toBe(false);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/dashboard')).toBe(false);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/')).toBe(false);
       });
 
       test('should handle edge cases gracefully', () => {
@@ -799,28 +695,14 @@ describe('Roll20.js - Comprehensive Tests', () => {
 
       test('should detect popout in various URL parts', () => {
         // These should still be detected as popups since they contain "popout"
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/something-popout-related'
-          )
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/popout-test/page'
-          )
-        ).toBe(true);
-        expect(
-          global.window.checkUrlForPopup(
-            'https://app.roll20.net/test/popout/123'
-          )
-        ).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/something-popout-related')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/popout-test/page')).toBe(true);
+        expect(global.window.checkUrlForPopup('https://app.roll20.net/test/popout/123')).toBe(true);
       });
 
       test('should handle URLs without protocols', () => {
         expect(global.window.checkUrlForPopup('/editor/popout')).toBe(true);
-        expect(global.window.checkUrlForPopup('/something?popout=true')).toBe(
-          true
-        );
+        expect(global.window.checkUrlForPopup('/something?popout=true')).toBe(true);
         expect(global.window.checkUrlForPopup('/editor/123')).toBe(false);
       });
     });

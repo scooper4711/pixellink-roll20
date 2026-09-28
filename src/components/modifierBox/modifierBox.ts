@@ -63,75 +63,81 @@ const forceThemeRefreshWrapper = (): void => {
 // No-op: modifier sync removed. Kept for backward compatibility with content script callers.
 const syncGlobalVars = (): void => {};
 
-async function createModifierBox(): Promise<HTMLElement | null> {
+function hasRequiredModules(): boolean {
   const hasThemeManager =
     window.ModifierBoxThemeManager && typeof window.ModifierBoxThemeManager.addStyles === 'function';
-
   const hasDragHandler =
     window.ModifierBoxDragHandler && typeof window.ModifierBoxDragHandler.setupDragFunctionality === 'function';
-
   const hasRowManager =
     window.ModifierBoxRowManager && typeof window.ModifierBoxRowManager.setupModifierRowLogic === 'function';
-
   if (!hasThemeManager || !hasDragHandler || !hasRowManager) {
     console.error('Required modules not loaded. Make sure all modifier box modules are included.');
+    return false;
+  }
+  return true;
+}
+
+function migrateLegacyModifierName(existingBox: HTMLElement): void {
+  const firstNameInput = existingBox.querySelector('.modifier-name') as HTMLInputElement | null;
+  if (firstNameInput?.value === 'None' || firstNameInput?.value === 'D20') {
+    firstNameInput.value = 'Attack';
+    firstNameInput.placeholder = 'Name';
+  }
+}
+
+function reuseExistingBox(existingBox: HTMLElement): HTMLElement {
+  setModifierBoxElement(existingBox);
+  setModifierBoxVisible(existingBox.style.display !== 'none');
+  migrateLegacyModifierName(existingBox);
+  setupModifierBoxComponents(existingBox, clearAllModifiers);
+  setModifierBoxCreated(true);
+  return existingBox;
+}
+
+function resolveLogoUrl(): string {
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
+      return chrome.runtime.getURL('assets/images/logo-128.png');
+    }
+  } catch {
+    // Using fallback logo URL (not in extension context)
+  }
+  return 'assets/images/logo-128.png';
+}
+
+async function buildBoxFromTemplate(): Promise<HTMLElement | null> {
+  if (!loadTemplate) {
+    console.error('HTMLLoader module not available. Falling back to inline HTML.');
+    return createModifierBoxFallback();
+  }
+  const logoUrl = resolveLogoUrl();
+  const htmlTemplate = await loadTemplate('components/modifierBox/modifierBox.html', 'modifierBox');
+  const processedHTML = htmlTemplate.replace('{{logoUrl}}', logoUrl);
+  const tempContainer = document.createElement('div');
+  tempContainer.innerHTML = processedHTML;
+  const newModifierBox = tempContainer.firstElementChild as HTMLElement;
+  setModifierBoxElement(newModifierBox);
+  setupModifierBoxComponents(newModifierBox, clearAllModifiers);
+  document.body.appendChild(newModifierBox);
+  setModifierBoxVisible(true);
+  setModifierBoxCreated(true);
+  return newModifierBox;
+}
+
+async function createModifierBox(): Promise<HTMLElement | null> {
+  if (!hasRequiredModules()) {
     return null;
   }
-
-  const modifierBox = getModifierBoxElement();
-  if (modifierBox) {
-    return modifierBox;
+  const cachedBox = getModifierBoxElement();
+  if (cachedBox) {
+    return cachedBox;
   }
-
   const existingBox = document.getElementById('pixels-modifier-box');
   if (existingBox) {
-    setModifierBoxElement(existingBox);
-    setModifierBoxVisible(existingBox.style.display !== 'none');
-
-    // Legacy migration: old modifier names no longer relevant
-    const firstNameInput = existingBox.querySelector('.modifier-name') as HTMLInputElement | null;
-    if (firstNameInput?.value === 'None' || firstNameInput?.value === 'D20') {
-      firstNameInput.value = 'Attack';
-      firstNameInput.placeholder = 'Name';
-    }
-
-    setupModifierBoxComponents(existingBox, clearAllModifiers);
-    setModifierBoxCreated(true);
-    return existingBox;
+    return reuseExistingBox(existingBox);
   }
-
   try {
-    if (!loadTemplate) {
-      console.error('HTMLLoader module not available. Falling back to inline HTML.');
-      return createModifierBoxFallback();
-    }
-
-    let logoUrl = 'assets/images/logo-128.png';
-    try {
-      if (typeof chrome !== 'undefined' && chrome.runtime?.getURL) {
-        logoUrl = chrome.runtime.getURL('assets/images/logo-128.png');
-      }
-    } catch {
-      // Using fallback logo URL (not in extension context)
-    }
-
-    const htmlTemplate = await loadTemplate('components/modifierBox/modifierBox.html', 'modifierBox');
-
-    const processedHTML = htmlTemplate.replace('{{logoUrl}}', logoUrl);
-
-    const tempContainer = document.createElement('div');
-    tempContainer.innerHTML = processedHTML;
-
-    const newModifierBox = tempContainer.firstElementChild as HTMLElement;
-    setModifierBoxElement(newModifierBox);
-
-    setupModifierBoxComponents(newModifierBox, clearAllModifiers);
-
-    document.body.appendChild(newModifierBox);
-    setModifierBoxVisible(true);
-    setModifierBoxCreated(true);
-
-    return newModifierBox;
+    return await buildBoxFromTemplate();
   } catch (error) {
     console.error('Failed to load HTML template:', error);
     return createModifierBoxFallback();

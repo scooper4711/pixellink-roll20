@@ -43,7 +43,7 @@ export const sendMessageToExtension = (data: ExtensionMessage): void => {
       // Don't log these common extension reload errors
       return;
     }
-    console.log('Could not send message to extension:', error);
+    console.warn('Could not send message to extension:', error);
   }
 };
 
@@ -94,14 +94,14 @@ export const setupMessageListener = (): void => {
       chrome.runtime.onMessage.addListener((msg: Record<string, unknown>, _sender, _sendResponse) => {
         // Handle null/undefined messages gracefully
         if (!msg || typeof msg !== 'object') {
-          console.log(`Received invalid message: ${JSON.stringify(msg)}`);
+          console.warn(`Received invalid message: ${JSON.stringify(msg)}`);
           return;
         }
 
         switch (msg.action) {
           case 'getStatus':
             sendStatusToExtension().catch(error => {
-              console.log('Error sending status to extension:', error);
+              console.warn('Error sending status to extension:', error);
             });
             break;
 
@@ -111,7 +111,7 @@ export const setupMessageListener = (): void => {
                 window.connectToPixel();
               }
             } catch (error) {
-              console.log('Error connecting to pixel:', error);
+              console.warn('Error connecting to pixel:', error);
             }
             break;
 
@@ -121,7 +121,7 @@ export const setupMessageListener = (): void => {
                 window.disconnectAllPixels();
               }
             } catch (error) {
-              console.log('Error disconnecting pixels:', error);
+              console.warn('Error disconnecting pixels:', error);
             }
             break;
 
@@ -130,7 +130,7 @@ export const setupMessageListener = (): void => {
         }
       });
     } catch (error) {
-      console.log('Could not set up extension message listener:', (error as Error).message);
+      console.warn('Could not set up extension message listener:', (error as Error).message);
     }
   }
 };

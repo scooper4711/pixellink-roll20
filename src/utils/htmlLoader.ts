@@ -14,7 +14,7 @@ export const loadTemplate = (templatePath: string, id: string): Promise<string> 
   return new Promise((resolve, reject) => {
     // Check if already loaded
     if (loadedTemplates.has(id)) {
-      console.log(`Template already loaded: ${id}`);
+      console.warn(`Template already loaded: ${id}`);
       resolve(loadedTemplates.get(id)!);
       return;
     }
@@ -33,7 +33,7 @@ export const loadTemplate = (templatePath: string, id: string): Promise<string> 
       return;
     }
 
-    console.log(`Loading template from: ${fullPath}`);
+    console.warn(`Loading template from: ${fullPath}`);
 
     // Fetch the HTML content
     fetch(fullPath)
@@ -45,7 +45,7 @@ export const loadTemplate = (templatePath: string, id: string): Promise<string> 
       })
       .then(htmlContent => {
         loadedTemplates.set(id, htmlContent);
-        console.log(`Template loaded successfully: ${id}`);
+        console.warn(`Template loaded successfully: ${id}`);
         resolve(htmlContent);
       })
       .catch(error => {
@@ -97,4 +97,4 @@ if (typeof window !== 'undefined') {
   window.HTMLLoader = HTMLLoader;
 }
 
-console.log('HTMLLoader utility initialized');
+console.warn('HTMLLoader utility initialized');

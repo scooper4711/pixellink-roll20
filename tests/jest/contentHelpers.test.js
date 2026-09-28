@@ -16,6 +16,7 @@ describe('Content helpers', () => {
     document.documentElement.replaceChild(document.createElement('body'), document.body);
 
     jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
 
     Utils = require('../../src/content/modules/Utils.js');
@@ -27,6 +28,7 @@ describe('Content helpers', () => {
 
   afterEach(() => {
     console.log.mockRestore();
+    console.warn.mockRestore();
     console.error.mockRestore();
   });
 
@@ -60,13 +62,13 @@ describe('Content helpers', () => {
 
     test('should log when the chat box is missing', () => {
       Roll20Integration.postChatMessage('hello');
-      expect(console.log).toHaveBeenCalledWith("Couldn't find Roll20 chat textarea and/or button");
+      expect(console.warn).toHaveBeenCalledWith("Couldn't find Roll20 chat textarea and/or button");
     });
 
     test('should log when textarea or button is missing', () => {
       document.body.innerHTML = '<div id="textchat-input"></div>';
       Roll20Integration.postChatMessage('hello');
-      expect(console.log).toHaveBeenCalledWith("Couldn't find Roll20 chat textarea and/or button");
+      expect(console.warn).toHaveBeenCalledWith("Couldn't find Roll20 chat textarea and/or button");
     });
   });
 
@@ -92,7 +94,7 @@ describe('Content helpers', () => {
     test('should warn when the box is not initialized', () => {
       addBox({ isInitialized: () => false });
       ModifierBoxManager.showModifierBox();
-      expect(console.log).toHaveBeenCalledWith('ModifierBox module not initialized yet');
+      expect(console.warn).toHaveBeenCalledWith('ModifierBox module not initialized yet');
     });
 
     test('should report show failures', async () => {
@@ -109,7 +111,7 @@ describe('Content helpers', () => {
 
     test('should log when the module is not loaded', () => {
       ModifierBoxManager.showModifierBox();
-      expect(console.log).toHaveBeenCalledWith('ModifierBox module not loaded');
+      expect(console.warn).toHaveBeenCalledWith('ModifierBox module not loaded');
     });
 
     test('should skip popup windows', () => {
@@ -122,7 +124,7 @@ describe('Content helpers', () => {
       try {
         addBox();
         ModifierBoxManager.showModifierBox();
-        expect(console.log).toHaveBeenCalledWith('Skipping modifier box display - this is a Roll20 popup window');
+        expect(console.warn).toHaveBeenCalledWith('Skipping modifier box display - this is a Roll20 popup window');
       } finally {
         Object.defineProperty(window, 'location', {
           value: original,
@@ -142,7 +144,7 @@ describe('Content helpers', () => {
 
     test('should log when the module is not loaded', () => {
       ModifierBoxManager.hideModifierBox();
-      expect(console.log).toHaveBeenCalledWith('ModifierBox module not loaded');
+      expect(console.warn).toHaveBeenCalledWith('ModifierBox module not loaded');
     });
   });
 });

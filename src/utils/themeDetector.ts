@@ -215,4 +215,4 @@ if (typeof window !== 'undefined') {
   window.ThemeDetector = ThemeDetector;
 }
 
-console.log('ThemeDetector module initialized');
+console.warn('ThemeDetector module initialized');

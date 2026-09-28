@@ -6,8 +6,10 @@
 
 'use strict';
 
-// Logging utility
-export const log: typeof console.log = console.log;
+// Logging utility (diagnostics route to warn so console.log stays noise-free)
+export const log: (...args: unknown[]) => void = (...args: unknown[]) => {
+  console.warn(...args);
+};
 
 // Helper function to get first element of array safely
 export const getArrayFirstElement = <T>(array: ArrayLike<T> | undefined): T | undefined => {

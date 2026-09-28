@@ -103,7 +103,7 @@ function updateTheme(modifierBox: HTMLElement | null): void {
   body.classList.remove('roll20-light-theme', 'roll20-dark-theme');
   body.classList.add(`roll20-${colors.theme}-theme`);
 
-  console.log(`Applied theme class: roll20-${colors.theme}-theme`);
+  console.warn(`Applied theme class: roll20-${colors.theme}-theme`);
 
   // Let CSS handle the styling now that we have the proper theme class applied
 }
